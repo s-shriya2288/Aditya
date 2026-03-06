@@ -3,79 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank | Private Login</title>
+    <title>SecureBank India | Enterprise</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
-</head>
-<body class="bg-slate-100 font-sans">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
-    <div id="auth-gate" class="min-h-screen flex items-center justify-center p-6">
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md">
-            <h2 class="text-3xl font-black text-blue-900 mb-2">SecureBank</h2>
-            <p class="text-slate-400 text-sm mb-8">Unauthorized access is strictly prohibited.</p>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .hidden { display: none; }
+        .rupee-font { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+
+    <div id="view-auth" class="min-h-screen flex items-center justify-center p-6">
+        <div class="bg-white p-10 rounded-[3rem] shadow-2xl w-full max-w-md border border-slate-200">
+            <h2 id="auth-title" class="text-3xl font-black text-blue-900 mb-2 italic">SecureBank</h2>
+            <p id="auth-subtitle" class="text-slate-400 text-sm mb-8">Enterprise RD Management System</p>
             
             <div class="space-y-4">
-                <input id="email" type="email" placeholder="Banker/User Email" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
-                <input id="pass" type="password" placeholder="Secure Password" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition">Unlock System</button>
+                <input id="email" type="email" placeholder="Email Address" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
+                <input id="pass" type="password" placeholder="Password" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="auth-btn" onclick="handleAuth()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-lg">Unlock System</button>
             </div>
+            <button onclick="toggleAuthMode()" id="toggle-link" class="w-full mt-6 text-xs font-bold text-blue-500 uppercase tracking-widest">New Banker? Create Admin</button>
             <p id="error-msg" class="text-red-500 text-xs mt-4 text-center hidden"></p>
         </div>
     </div>
 
     <div id="main-app" class="hidden">
-        <nav class="bg-white p-4 shadow-sm flex justify-between items-center">
-            <span class="font-bold text-blue-900">🏦 SecureBank Pro</span>
-            <button onclick="handleLogout()" class="text-xs font-bold text-red-500 uppercase">Log Out</button>
+        <nav class="bg-white p-5 shadow-sm flex justify-between items-center sticky top-0 z-50">
+            <h1 class="font-black text-blue-900 italic">SecureBank <span class="text-blue-500 font-bold">PRO</span></h1>
+            <div class="flex items-center gap-4">
+                <span id="user-role-badge" class="text-[9px] font-black bg-slate-100 px-2 py-1 rounded text-slate-500 uppercase">Role</span>
+                <button onclick="logout()" class="text-red-500 font-bold text-xs uppercase">Logout</button>
+            </div>
         </nav>
-        <div id="dashboard-content" class="p-6">
-            <h1 class="text-2xl font-bold">Welcome, Authorized User</h1>
+
+        <section id="portal-admin" class="hidden p-6 max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
+                    <h3 class="text-xs font-black text-slate-400 uppercase mb-6">Create New RD Account</h3>
+                    <div class="space-y-3">
+                        <input id="adm-acc" placeholder="Account Number" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        <input id="adm-name" placeholder="Client Name" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        <input id="adm-denom" type="number" placeholder="Yearly RD Amount (₹)" oninput="calcTotal()" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        <input id="adm-years" type="number" placeholder="Total Years" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        <div class="flex gap-2">
+                            <input id="adm-fine" type="number" placeholder="Fine (₹)" oninput="calcTotal()" class="w-1/2 p-4 bg-red-50 rounded-2xl text-red-700">
+                            <input id="adm-rebate" type="number" placeholder="Rebate (₹)" oninput="calcTotal()" class="w-1/2 p-4 bg-emerald-50 rounded-2xl text-emerald-700">
+                        </div>
+                        <div class="bg-slate-900 p-4 rounded-2xl text-center text-white">
+                            <p class="text-[10px] uppercase font-bold opacity-60">Grand Total</p>
+                            <p id="total-preview" class="text-2xl font-black">₹0</p>
+                        </div>
+                        <button onclick="saveAccount()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-xl">Register Account</button>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 space-y-4">
+                    <input type="text" id="admin-search" oninput="renderAdminList()" placeholder="🔍 Search client names (e.g. Shriya)..." class="w-full p-5 bg-white rounded-3xl shadow-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    <div id="admin-list" class="space-y-3"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="portal-worker" class="hidden p-6 max-w-md mx-auto">
+            <h2 class="text-2xl font-black mb-6">Field Collections</h2>
+            <div id="worker-list" class="space-y-4"></div>
+        </section>
+
+        <section id="portal-client" class="hidden p-6 max-w-md mx-auto">
+            <div id="client-card" class="mb-8 p-8 rounded-[3rem] shadow-2xl text-white transition-all"></div>
+            <div class="bg-white p-8 rounded-[3rem] shadow-xl text-center">
+                <div id="scanner-ui">
+                    <div id="reader" class="rounded-[2rem] overflow-hidden mb-6 bg-slate-50 border-2 border-dashed border-slate-200"></div>
+                    <button onclick="startScanner()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold">Scan Agent QR</button>
+                </div>
+                <div id="otp-ui" class="hidden">
+                    <h3 class="text-2xl font-black mb-6 uppercase italic">Enter OTP</h3>
+                    <input id="otp-entry" maxlength="4" placeholder="••••" class="w-full p-6 bg-slate-100 rounded-3xl text-center text-5xl font-black tracking-[0.5em] mb-8 border-2 border-blue-500 outline-none">
+                    <button onclick="verifyPayment()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-bold">Confirm Deposit</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="qr-modal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-6">
+        <div class="bg-white p-10 rounded-[3rem] text-center w-full max-w-sm">
+            <div id="qrcode" class="flex justify-center mb-6"></div>
+            <p id="qr-amt" class="text-4xl font-black mb-8 text-emerald-600"></p>
+            <button onclick="document.getElementById('qr-modal').classList.add('hidden')" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Close</button>
         </div>
     </div>
 
     <script>
-        const firebaseConfig = { /* PASTE YOUR KEYS HERE */ };
+        // FIREBASE CONFIG - PASTE YOUR KEYS HERE
+        const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 1. LOGIN LOGIC
-        async function handleLogin() {
+        let currentRole = null;
+        let accounts = [];
+        let isRegisterMode = false;
+        let scanningFor = null;
+
+        // AUTH & ROUTING
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('auth-title').innerText = isRegisterMode ? "Register Admin" : "SecureBank";
+            document.getElementById('auth-btn').innerText = isRegisterMode ? "Create Account" : "Unlock System";
+            document.getElementById('toggle-link').innerText = isRegisterMode ? "Already have account? Login" : "New Banker? Create Admin";
+        }
+
+        async function handleAuth() {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('pass').value;
             try {
-                await auth.signInWithEmailAndPassword(email, pass);
-            } catch (error) {
-                const errEl = document.getElementById('error-msg');
-                errEl.innerText = "Invalid Credentials";
-                errEl.classList.remove('hidden');
-            }
+                if(isRegisterMode) await auth.createUserWithEmailAndPassword(email, pass);
+                else await auth.signInWithEmailAndPassword(email, pass);
+            } catch (e) { alert(e.message); }
         }
 
-        // 2. AUTH STATE LISTENER (The most important part for privacy)
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                // User is signed in
-                document.getElementById('auth-gate').classList.add('hidden');
+        auth.onAuthStateChanged(async user => {
+            if(user) {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                currentRole = userDoc.exists ? userDoc.data().role : 'client';
+                document.getElementById('user-role-badge').innerText = currentRole;
+                document.getElementById('view-auth').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
-                loadUserData(user.uid);
+                initPortal();
             } else {
-                // No user is signed in
-                document.getElementById('auth-gate').classList.remove('hidden');
+                document.getElementById('view-auth').classList.remove('hidden');
                 document.getElementById('main-app').classList.add('hidden');
             }
         });
 
-        async function handleLogout() {
-            await auth.signOut();
+        function initPortal() {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            if(currentRole === 'admin') {
+                document.getElementById('portal-admin').classList.remove('hidden');
+                db.collection('accounts').onSnapshot(snap => {
+                    accounts = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                    renderAdminList();
+                });
+            } else if(currentRole === 'worker') {
+                document.getElementById('portal-worker').classList.remove('hidden');
+                db.collection('accounts').onSnapshot(snap => {
+                    accounts = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                    renderWorkerList();
+                });
+            } else {
+                document.getElementById('portal-client').classList.remove('hidden');
+                db.collection('accounts').onSnapshot(snap => {
+                    accounts = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                    renderClientView();
+                });
+            }
         }
 
-        function loadUserData(uid) {
-            console.log("Loading private data for:", uid);
-            // Here you would fetch ONLY the data this user is allowed to see
+        // ADMIN FEATURES
+        function calcTotal() {
+            const d = parseFloat(document.getElementById('adm-denom').value) || 0;
+            const f = parseFloat(document.getElementById('adm-fine').value) || 0;
+            const r = parseFloat(document.getElementById('adm-rebate').value) || 0;
+            document.getElementById('total-preview').innerText = "₹" + (d + f - r);
         }
+
+        async function saveAccount() {
+            const d = parseFloat(document.getElementById('adm-denom').value);
+            const f = parseFloat(document.getElementById('adm-fine').value) || 0;
+            const r = parseFloat(document.getElementById('adm-rebate').value) || 0;
+            const otp = Math.floor(1000 + Math.random() * 9000).toString();
+            await db.collection('accounts').add({
+                name: document.getElementById('adm-name').value,
+                accNum: document.getElementById('adm-acc').value,
+                denom: d, fine: f, rebate: r, total: (d+f-r),
+                totalYears: parseInt(document.getElementById('adm-years').value),
+                paidYears: 0, otp: otp
+            });
+            alert("Account Linked to Cloud! OTP: " + otp);
+        }
+
+        function renderAdminList() {
+            const q = document.getElementById('admin-search').value.toLowerCase();
+            const list = document.getElementById('admin-list');
+            list.innerHTML = accounts.filter(a => a.name.toLowerCase().includes(q)).map(a => `
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm flex justify-between border">
+                    <div><p class="font-black uppercase">${a.name}</p><p class="text-[10px] text-slate-400">Acc: ${a.accNum} | OTP: ${a.otp}</p></div>
+                    <div class="text-right"><p class="font-black text-blue-600 italic">₹${a.total}</p><p class="text-[9px] uppercase font-bold text-slate-400">${a.paidYears}/${a.totalYears} YRS</p></div>
+                </div>
+            `).join('');
+        }
+
+        // WORKER FEATURES
+        function renderWorkerList() {
+            const list = document.getElementById('worker-list');
+            list.innerHTML = accounts.map(a => `
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-lg border">
+                    <h4 class="font-black text-xl mb-4">${a.name}</h4>
+                    <div class="bg-emerald-50 p-4 rounded-2xl mb-4"><p class="text-xs uppercase font-bold text-emerald-600">Total Collection</p><p class="text-3xl font-black text-emerald-700">₹${a.total}</p></div>
+                    <button onclick="showQR('${a.id}', ${a.total})" class="w-full bg-emerald-700 text-white py-4 rounded-2xl font-bold">Generate Payment QR</button>
+                </div>
+            `).join('');
+        }
+
+        function showQR(id, amt) {
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), { text: id, width: 200, height: 200 });
+            document.getElementById('qr-amt').innerText = "₹" + amt;
+            document.getElementById('qr-modal').classList.remove('hidden');
+        }
+
+        // CLIENT FEATURES
+        function renderClientView() {
+            const c = accounts[0]; if(!c) return;
+            const card = document.getElementById('client-card');
+            const color = c.fine > 0 ? 'bg-red-600' : 'bg-blue-800';
+            card.className = `mb-8 p-8 rounded-[3rem] shadow-2xl text-white ${color}`;
+            card.innerHTML = `
+                <p class="text-xs font-bold opacity-60 uppercase">RD Savings</p>
+                <h1 class="text-5xl font-black mb-8 italic">₹${c.paidYears * c.denom}</h1>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white/10 p-4 rounded-2xl"><p class="text-[10px]">Years</p><p class="text-xl font-bold">${c.paidYears}/${c.totalYears}</p></div>
+                    <div class="bg-white/10 p-4 rounded-2xl"><p class="text-[10px]">Due</p><p class="text-xl font-bold">₹${c.total}</p></div>
+                </div>
+                <button onclick="genPDF()" class="w-full mt-6 py-3 bg-white/20 rounded-xl text-[10px] font-bold uppercase tracking-widest">Download Last Receipt</button>
+            `;
+        }
+
+        function startScanner() {
+            const scanner = new Html5Qrcode("reader");
+            scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (id) => {
+                scanner.stop();
+                scanningFor = accounts.find(a => a.id === id);
+                document.getElementById('scanner-ui').classList.add('hidden');
+                document.getElementById('otp-ui').classList.remove('hidden');
+            });
+        }
+
+        async function verifyPayment() {
+            const input = document.getElementById('otp-entry').value;
+            if(input === scanningFor.otp) {
+                await db.collection('accounts').doc(scanningFor.id).update({
+                    paidYears: scanningFor.paidYears + 1,
+                    fine: 0
+                });
+                alert("Success! RD Updated.");
+                location.reload();
+            } else alert("Invalid OTP");
+        }
+
+        function genPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text("SECUREBANK DEPOSIT RECEIPT", 20, 20);
+            doc.text("Status: Successful", 20, 30);
+            doc.save("Receipt.pdf");
+        }
+
+        function logout() { auth.signOut(); }
     </script>
 </body>
 </html>
