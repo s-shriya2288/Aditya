@@ -3,51 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank Multi-Portal</title>
+    <title>SecureBank India | RD Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .sidebar-shadow { box-shadow: 0 10px 40px rgba(0,0,0,0.04); }
+    </style>
 </head>
-<body class="bg-slate-100 font-sans">
+<body>
 
-    <div id="portal-select" class="min-h-screen flex flex-col items-center justify-center p-6">
-        <h1 class="text-4xl font-black text-blue-900 mb-8 italic">SecureBank PRO</h1>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-            <button onclick="showAuth('admin')" class="bg-white p-8 rounded-3xl shadow-xl hover:scale-105 transition border-b-8 border-blue-600">
-                <span class="text-4xl">🔑</span>
-                <h3 class="font-bold mt-4">ADMIN</h3>
-            </button>
-            <button onclick="showAuth('worker')" class="bg-white p-8 rounded-3xl shadow-xl hover:scale-105 transition border-b-8 border-green-600">
-                <span class="text-4xl">👷</span>
-                <h3 class="font-bold mt-4">WORKER</h3>
-            </button>
-            <button onclick="showAuth('client')" class="bg-white p-8 rounded-3xl shadow-xl hover:scale-105 transition border-b-8 border-orange-600">
-                <span class="text-4xl">📱</span>
-                <h3 class="font-bold mt-4">CLIENT</h3>
-            </button>
+    <div id="view-selector" class="min-h-screen flex items-center justify-center p-6">
+        <div class="bg-white p-12 rounded-[3rem] shadow-2xl w-full max-w-md text-center">
+            <h1 class="text-3xl font-extrabold text-blue-900 italic mb-1">SecureBank India</h1>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-10">RD Control Terminal</p>
+            
+            <div class="space-y-4">
+                <button onclick="openPortal('admin')" class="w-full bg-[#1e293b] text-white py-5 rounded-2xl font-bold shadow-lg hover:opacity-90 transition">Admin (Banker)</button>
+                <button onclick="openPortal('worker')" class="w-full bg-[#3d7a5d] text-white py-5 rounded-2xl font-bold shadow-lg hover:opacity-90 transition">Worker (Field)</button>
+                <button onclick="openPortal('client')" class="w-full bg-[#3b82f6] text-white py-5 rounded-2xl font-bold shadow-lg hover:opacity-90 transition">Client (Passbook)</button>
+            </div>
         </div>
     </div>
 
-    <div id="auth-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-        <div class="bg-white p-10 rounded-[2.5rem] w-full max-w-md relative">
-            <button onclick="location.reload()" class="absolute top-6 right-6 text-slate-300">✕</button>
-            <h2 id="modal-title" class="text-2xl font-black mb-6 uppercase tracking-tighter">Login</h2>
-            
-            <div id="email-fields" class="space-y-4 hidden">
-                <input id="email" type="email" placeholder="Staff Email" class="w-full p-4 bg-slate-50 rounded-xl border">
-                <input id="pass" type="password" placeholder="Password" class="w-full p-4 bg-slate-50 rounded-xl border">
-                <button onclick="staffLogin()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold">Enter Portal</button>
+    <div id="view-admin" class="hidden min-h-screen p-8">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div class="lg:col-span-4 bg-white p-8 rounded-[2.5rem] sidebar-shadow h-fit">
+                <h3 class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-8">New RD Registration</h3>
+                <div class="space-y-4">
+                    <input id="adm-acc" placeholder="Account Number (Private)" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100">
+                    <input id="adm-name" placeholder="Full Name" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none">
+                    <input id="adm-phone" placeholder="Phone (+91)" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none">
+                    <select id="adm-denom" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none">
+                        <option value="">RD Denomination (₹)</option>
+                        <option value="500">500</option>
+                        <option value="1000">1000</option>
+                    </select>
+                    <div class="flex gap-2">
+                        <input id="adm-rebate" placeholder="Rebate (₹)" class="w-1/2 p-4 bg-emerald-50 text-emerald-600 rounded-2xl border-none outline-none">
+                        <input id="adm-fine" placeholder="Fine (₹)" class="w-1/2 p-4 bg-red-50 text-red-600 rounded-2xl border-none outline-none">
+                    </div>
+                    <div class="bg-[#0f172a] p-6 rounded-3xl text-center text-white">
+                        <p class="text-[10px] opacity-40 uppercase tracking-widest mb-1">Total Collection</p>
+                        <h2 class="text-3xl font-black">₹0</h2>
+                    </div>
+                    <button onclick="saveRD()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-xl">Create RD & Send OTP</button>
+                </div>
             </div>
-
-            <div id="phone-fields" class="space-y-4 hidden">
-                <input id="phone" type="text" placeholder="+91 99999 99999" class="w-full p-4 bg-slate-50 rounded-xl border">
-                <div id="recaptcha-container"></div>
-                <button id="send-otp" onclick="sendOTP()" class="w-full bg-orange-500 text-white py-4 rounded-xl font-bold">Send OTP</button>
-                <input id="otp" type="text" placeholder="Enter 6-digit OTP" class="w-full p-4 bg-slate-50 rounded-xl border hidden">
-                <button id="verify-otp" onclick="verifyOTP()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold hidden">Verify & Login</button>
+            <div class="lg:col-span-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-black text-slate-800">Banker Console</h2>
+                    <button onclick="location.reload()" class="bg-slate-200 px-4 py-2 rounded-xl text-[10px] font-bold">EXIT</button>
+                </div>
+                <div id="admin-list" class="space-y-4"></div>
             </div>
         </div>
+    </div>
+
+    <div id="view-worker" class="hidden min-h-screen bg-[#f0f9f4] p-8">
+        <h2 class="text-center font-black italic text-emerald-900 mb-10 text-2xl">Field Terminal</h2>
+        <div id="worker-list" class="max-w-md mx-auto space-y-8"></div>
     </div>
 
     <script>
@@ -60,59 +78,68 @@
             appId: "1:293213633601:web:848fa363878f3230345ac0"
         };
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let currentRole = '';
-        let confirmationResult;
-
-        function showAuth(role) {
-            currentRole = role;
-            document.getElementById('portal-select').classList.add('hidden');
-            document.getElementById('auth-modal').classList.remove('hidden');
-            document.getElementById('modal-title').innerText = `${role} access`;
-            
-            if(role === 'client') {
-                document.getElementById('phone-fields').classList.remove('hidden');
-            } else {
-                document.getElementById('email-fields').classList.remove('hidden');
+        function openPortal(role) {
+            document.getElementById('view-selector').classList.add('hidden');
+            if(role === 'admin') {
+                document.getElementById('view-admin').classList.remove('hidden');
+                loadAdminData();
+            } else if(role === 'worker') {
+                document.getElementById('view-worker').classList.remove('hidden');
+                loadWorkerData();
             }
         }
 
-        // --- PHONE AUTH LOGIC ---
-        function sendOTP() {
-            const num = document.getElementById('phone').value;
-            const appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
-            auth.signInWithPhoneNumber(num, appVerifier).then(res => {
-                confirmationResult = res;
-                document.getElementById('otp').classList.remove('hidden');
-                document.getElementById('verify-otp').classList.remove('hidden');
-                document.getElementById('send-otp').classList.add('hidden');
-            }).catch(err => alert(err.message));
+        async function saveRD() {
+            const data = {
+                acc: document.getElementById('adm-acc').value,
+                name: document.getElementById('adm-name').value,
+                phone: document.getElementById('adm-phone').value,
+                balance: 1008000,
+                status: "0/1 Years",
+                otp: Math.floor(1000 + Math.random() * 9000)
+            };
+            await db.collection('accounts').add(data);
+            alert("Registered Successfully!");
         }
 
-        function verifyOTP() {
-            const code = document.getElementById('otp').value;
-            confirmationResult.confirm(code).then(() => {
-                window.location.href = "client_dashboard.html"; // Redirect to your client page
-            }).catch(err => alert("Wrong OTP"));
+        function loadAdminData() {
+            db.collection('accounts').onSnapshot(snap => {
+                const list = document.getElementById('admin-list');
+                list.innerHTML = snap.docs.map(doc => {
+                    const d = doc.data();
+                    return `
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50 flex justify-between items-center">
+                        <div>
+                            <h4 class="font-black text-slate-800 uppercase">${d.name}</h4>
+                            <p class="text-[10px] text-slate-400 font-bold tracking-tight">ACC: ${d.acc} | OTP: ${d.otp}</p>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="text-2xl font-black text-blue-700">₹${d.balance.toLocaleString()}</h2>
+                            <p class="text-[8px] font-black text-blue-400 bg-blue-50 px-3 py-1 rounded-full inline-block">${d.status}</p>
+                        </div>
+                    </div>`;
+                }).join('');
+            });
         }
 
-        // --- STAFF LOGIN ---
-        async function staffLogin() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            try {
-                const res = await auth.signInWithEmailAndPassword(e, p);
-                // Check if user is actually an admin or worker in Firestore
-                const doc = await db.collection('users').doc(res.user.uid).get();
-                if(doc.data().role === currentRole) {
-                    window.location.href = currentRole + "_dashboard.html";
-                } else {
-                    alert("Unauthorized for this portal!");
-                    auth.signOut();
-                }
-            } catch(err) { alert(err.message); }
+        function loadWorkerData() {
+            db.collection('accounts').onSnapshot(snap => {
+                const list = document.getElementById('worker-list');
+                list.innerHTML = snap.docs.map(doc => {
+                    const d = doc.data();
+                    return `
+                    <div class="bg-white p-10 rounded-[3rem] shadow-xl text-center">
+                        <h4 class="text-2xl font-black text-slate-800 mb-6">${d.name.toLowerCase()}</h4>
+                        <div class="bg-emerald-50 p-6 rounded-3xl mb-6">
+                            <p class="text-[10px] text-emerald-600 font-black uppercase mb-1">Total to Collect</p>
+                            <h2 class="text-3xl font-black text-emerald-800">₹${d.balance.toLocaleString()}</h2>
+                        </div>
+                        <button class="w-full bg-[#3d7a5d] text-white py-5 rounded-2xl font-black tracking-tight">Generate QR</button>
+                    </div>`;
+                }).join('');
+            });
         }
     </script>
 </body>
