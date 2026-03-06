@@ -3,32 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank India | RD Unified Terminal</title>
+    <title>SecureBank India | OTP Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; margin: 0; }
         .hidden { display: none !important; }
         .centered-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; width: 100vw; padding: 20px; }
-        .glass-box { background: white; border-radius: 3.5rem; padding: 3.5rem; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.1); width: 100%; max-width: 480px; text-align: center; }
+        .login-card { background: white; border-radius: 3.5rem; padding: 4rem; box-shadow: 0 40px 100px -20px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
         .passbook-blue { background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); border-radius: 3rem; color: white; padding: 3.5rem; width: 100%; max-width: 520px; box-shadow: 0 30px 60px -12px rgba(37, 99, 235, 0.3); }
-        .ledger-card { background: white; border-radius: 2rem; padding: 1.5rem 2.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border: 1px solid #eef2f6; transition: 0.2s; }
-        .ledger-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.04); }
+        .otp-input { letter-spacing: 1.5rem; text-align: center; font-size: 2rem; font-weight: 900; }
     </style>
 </head>
 <body>
 
-    <div id="view-selector" class="centered-screen">
-        <div class="glass-box">
-            <h1 class="text-3xl font-black text-blue-900 italic mb-2 tracking-tighter">SecureBank India</h1>
-            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-[0.4em] mb-12">Portal Select</p>
-            <div class="flex flex-col gap-4">
-                <button onclick="nav('view-admin')" class="w-full bg-[#0f172a] text-white py-6 rounded-2xl font-bold text-lg hover:scale-[1.02] transition">Banker Console</button>
-                <button onclick="nav('view-worker')" class="w-full bg-[#3d7a5d] text-white py-6 rounded-2xl font-bold text-lg hover:scale-[1.02] transition">Field Terminal</button>
-                <button onclick="nav('view-client')" class="w-full bg-blue-600 text-white py-6 rounded-2xl font-bold text-lg shadow-lg hover:scale-[1.02] transition">Client Passbook</button>
+    <div id="view-login" class="centered-screen">
+        <div class="login-card">
+            <h1 class="text-3xl font-black text-blue-900 italic mb-1 tracking-tighter">SecureBank India</h1>
+            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-[0.4em] mb-12">Identity Verification</p>
+            
+            <div id="login-step-1" class="space-y-4">
+                <input id="login-phone" type="tel" placeholder="Enter Registered Phone" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-blue-400 text-center">
+                <button onclick="requestOTP()" class="w-full bg-blue-600 text-white py-6 rounded-3xl font-black text-lg shadow-xl shadow-blue-100 mt-4">Send OTP →</button>
+                <p class="text-[10px] text-slate-400 mt-4 uppercase font-bold">Admin/Worker: use 'admin' or 'worker'</p>
+            </div>
+
+            <div id="login-step-2" class="hidden space-y-4">
+                <p class="text-xs font-bold text-emerald-600 mb-4 animate-pulse">OTP Sent to Mobile!</p>
+                <input id="login-otp" type="text" maxlength="4" placeholder="0000" class="w-full p-5 bg-slate-50 rounded-2xl outline-none otp-input border-2 border-blue-400">
+                <button onclick="verifyOTP()" class="w-full bg-slate-900 text-white py-6 rounded-3xl font-black text-lg shadow-xl mt-4">Verify & Access</button>
+                <button onclick="location.reload()" class="text-[10px] text-slate-300 font-bold uppercase tracking-widest mt-4 block mx-auto">Back</button>
             </div>
         </div>
     </div>
@@ -36,70 +42,40 @@
     <div id="view-admin" class="hidden min-h-screen p-8 lg:p-12">
         <div class="max-w-[1400px] mx-auto">
             <div class="flex justify-between items-center mb-10">
-                <h1 class="text-3xl font-black italic text-slate-800">Banker Console</h1>
-                <button onclick="nav('view-selector')" class="bg-slate-200 text-slate-600 px-8 py-3 rounded-2xl font-bold text-xs uppercase">Exit</button>
+                <h1 class="text-3xl font-black italic">Banker Console</h1>
+                <button onclick="location.reload()" class="bg-slate-200 text-slate-600 px-8 py-3 rounded-2xl font-bold text-xs uppercase">Logout</button>
             </div>
-            
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 <div class="lg:col-span-4 bg-white p-10 rounded-[3.5rem] shadow-sm h-fit">
-                    <p class="text-[10px] font-black text-slate-300 uppercase mb-8 tracking-widest">New RD Registration</p>
+                    <p class="text-[10px] font-black text-slate-300 uppercase mb-8">Register New RD Account</p>
                     <div class="space-y-4">
-                        <input id="r-acc" placeholder="Account Number" class="w-full p-5 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-blue-100">
+                        <input id="r-acc" placeholder="Assign Account Number" class="w-full p-5 bg-slate-50 rounded-2xl outline-none">
                         <input id="r-name" placeholder="Full Name" class="w-full p-5 bg-slate-50 rounded-2xl outline-none">
                         <input id="r-phone" placeholder="Phone (+91)" class="w-full p-5 bg-slate-50 rounded-2xl outline-none">
-                        <div class="flex gap-4">
-                            <input id="r-denom" type="number" placeholder="Denom" class="w-1/2 p-5 bg-slate-50 rounded-2xl outline-none">
-                            <input id="r-years" type="number" placeholder="Years" class="w-1/2 p-5 bg-slate-50 rounded-2xl outline-none">
-                        </div>
-                        <button onclick="saveRD()" class="w-full bg-blue-600 text-white py-6 rounded-3xl font-bold text-lg shadow-xl mt-4">Create RD Account</button>
+                        <input id="r-denom" type="number" placeholder="Monthly Denom (₹)" class="w-full p-5 bg-slate-50 rounded-2xl outline-none">
+                        <button onclick="createAccount()" class="w-full bg-blue-600 text-white py-6 rounded-3xl font-black shadow-xl">Register Account</button>
                     </div>
                 </div>
-                <div id="admin-ledger" class="lg:col-span-8">
-                    <p class="text-slate-400 italic">Syncing with secure cloud...</p>
-                </div>
+                <div id="admin-ledger" class="lg:col-span-8"></div>
             </div>
         </div>
-    </div>
-
-    <div id="view-worker" class="hidden centered-screen flex-col bg-[#f0f9f4]">
-        <div class="glass-box">
-            <h1 class="text-2xl font-black text-emerald-900 mb-8 uppercase tracking-tighter">Verification Terminal</h1>
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <button onclick="startScanner()" class="bg-emerald-600 text-white py-5 rounded-2xl font-bold text-sm">📷 SCAN QR</button>
-                <button onclick="showPhoneVerify()" class="bg-slate-800 text-white py-5 rounded-2xl font-bold text-sm">📞 PHONE NO.</button>
-            </div>
-            <div id="qr-reader" class="hidden rounded-3xl overflow-hidden mb-6"></div>
-            <div id="phone-verify-box" class="hidden space-y-4">
-                <input id="w-search-phone" placeholder="Enter Phone Number" class="w-full p-5 bg-slate-50 rounded-2xl outline-none text-lg font-bold">
-                <button onclick="verifyByPhone()" class="w-full bg-emerald-500 text-white py-4 rounded-xl font-bold">Search Client</button>
-            </div>
-            <div id="worker-result" class="hidden mt-6 p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-100"></div>
-        </div>
-        <button onclick="nav('view-selector')" class="mt-8 text-slate-400 font-bold uppercase text-[10px] tracking-widest">Back</button>
     </div>
 
     <div id="view-client" class="hidden centered-screen flex-col bg-white">
-        <h2 class="text-slate-800 font-black italic text-2xl mb-10 uppercase tracking-tighter">My RD Passbook</h2>
+        <h2 class="text-slate-800 font-black italic text-2xl mb-10 uppercase tracking-tighter">My Secure Passbook</h2>
         <div class="passbook-blue relative overflow-hidden mb-12">
-            <p class="text-[10px] font-bold opacity-50 uppercase tracking-[0.3em] mb-2">Total Savings</p>
+            <p id="c-name" class="text-xl font-bold mb-2 uppercase opacity-80">---</p>
             <h1 id="c-balance" class="text-7xl font-black italic mb-10 tracking-tighter">₹0</h1>
             <div class="flex justify-between border-t border-white/10 pt-10">
-                <p class="font-bold tracking-widest text-sm opacity-80 uppercase">Status: Active</p>
-                <p id="c-acc-num" class="font-bold text-sm opacity-60">ACC: ---</p>
+                <p class="font-bold text-sm opacity-60">ENCRYPTED SESSION</p>
+                <p id="c-acc" class="font-bold text-sm opacity-60">ACC: ****</p>
             </div>
         </div>
-        <button onclick="nav('view-selector')" class="text-slate-300 font-bold uppercase text-[10px] tracking-widest">Close Passbook</button>
+        <button onclick="location.reload()" class="text-slate-300 font-bold uppercase text-[10px] tracking-widest">Secure Logout</button>
     </div>
 
     <script>
-        // --- 1. CORE ENGINE ---
-        function nav(id) {
-            document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-            if(id === 'view-admin') loadAdminData();
-        }
-
-        // --- 2. FIREBASE ---
+        // --- 1. CONFIG & GLOBALS ---
         const firebaseConfig = {
             apiKey: "AIzaSyCLZr_vHKRZw9mr27IFzkKvB6SD4Keksas",
             authDomain: "bank-d463e.firebaseapp.com",
@@ -109,89 +85,89 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        
+        let currentUserData = null;
+        let generatedOTP = null;
 
-        // --- 3. BANKER LOGIC ---
-        async function saveRD() {
-            try {
-                const data = {
-                    acc: document.getElementById('r-acc').value,
-                    name: document.getElementById('r-name').value.toUpperCase(),
-                    phone: document.getElementById('r-phone').value,
-                    denom: parseFloat(document.getElementById('r-denom').value),
-                    balance: parseFloat(document.getElementById('r-denom').value),
-                    paid_count: 1,
-                    years: document.getElementById('r-years').value,
-                    created_at: new Date()
-                };
-                await db.collection('accounts').add(data);
-                alert("Account Created Successfully!");
-                loadAdminData();
-            } catch(e) { alert("Permission Error: Ensure Rules are Published!"); }
+        // --- 2. OTP LOGIN SYSTEM ---
+        async function requestOTP() {
+            const phone = document.getElementById('login-phone').value;
+
+            // Direct Login for Admin/Worker
+            if(phone === 'admin' || phone === 'worker') {
+                document.getElementById('login-step-1').classList.add('hidden');
+                document.getElementById('login-step-2').classList.remove('hidden');
+                generatedOTP = "1234"; // Fixed OTP for Test Admin
+                return;
+            }
+
+            const snap = await db.collection('accounts').where('phone', '==', phone).get();
+            if(!snap.empty) {
+                currentUserData = snap.docs[0].data();
+                generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+                
+                // Simulate SMS Send
+                alert("CLIENT DEMO OTP: " + generatedOTP); 
+                
+                document.getElementById('login-step-1').classList.add('hidden');
+                document.getElementById('login-step-2').classList.remove('hidden');
+            } else {
+                alert("Phone number not registered.");
+            }
         }
 
-        function loadAdminData() {
+        function verifyOTP() {
+            const entered = document.getElementById('login-otp').value;
+            const phone = document.getElementById('login-phone').value;
+
+            if(entered === generatedOTP) {
+                if(phone === 'admin') { switchView('view-admin'); }
+                else if(phone === 'worker') { alert("Worker Access Pending Setup"); }
+                else {
+                    document.getElementById('c-name').innerText = currentUserData.name;
+                    document.getElementById('c-balance').innerText = "₹" + currentUserData.balance.toLocaleString();
+                    document.getElementById('c-acc').innerText = "ACC: ****" + currentUserData.acc.slice(-4);
+                    switchView('view-client');
+                }
+            } else {
+                alert("Invalid OTP Code.");
+            }
+        }
+
+        function switchView(id) {
+            document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'view-admin') loadLedger();
+        }
+
+        // --- 3. BANKER LOGIC ---
+        async function createAccount() {
+            const d = {
+                acc: document.getElementById('r-acc').value,
+                name: document.getElementById('r-name').value.toUpperCase(),
+                phone: document.getElementById('r-phone').value,
+                denom: parseFloat(document.getElementById('r-denom').value),
+                balance: parseFloat(document.getElementById('r-denom').value),
+                paid_count: 1,
+                created_at: new Date()
+            };
+            await db.collection('accounts').add(d);
+            alert("RD Account Registered Successfully!");
+            loadLedger();
+        }
+
+        function loadLedger() {
             db.collection('accounts').orderBy('created_at', 'desc').onSnapshot(snap => {
                 const list = document.getElementById('admin-ledger');
                 list.innerHTML = '';
                 snap.forEach(doc => {
                     const d = doc.data();
-                    list.innerHTML += `
-                        <div class="ledger-card">
-                            <div class="flex items-center gap-6">
-                                <button onclick="deleteRD('${doc.id}')" class="text-red-300 hover:text-red-500 text-xl transition">🗑️</button>
-                                <div>
-                                    <h3 class="text-xl font-bold text-slate-800">${d.name}</h3>
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase">ACC: ${d.acc} | ${d.phone}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <h2 class="text-3xl font-black text-blue-600 italic">₹${d.balance.toLocaleString()}</h2>
-                                <p class="text-[9px] font-black bg-blue-50 text-blue-500 px-3 py-1 rounded-full uppercase mt-1">
-                                    Paid: ${d.paid_count}/${parseInt(d.years)*12}
-                                </p>
-                            </div>
-                        </div>`;
+                    list.innerHTML += `<div class="bg-white p-6 rounded-3xl mb-4 flex justify-between items-center shadow-sm">
+                        <div><h4 class="font-bold text-lg">${d.name}</h4><p class="text-xs text-slate-400">${d.phone}</p></div>
+                        <h2 class="text-2xl font-black text-blue-600 italic">₹${d.balance.toLocaleString()}</h2>
+                    </div>`;
                 });
             });
-        }
-
-        async function deleteRD(id) { if(confirm("Delete RD?")) await db.collection('accounts').doc(id).delete(); }
-
-        // --- 4. WORKER VERIFICATION ---
-        function showPhoneVerify() { 
-            document.getElementById('phone-verify-box').classList.remove('hidden'); 
-            document.getElementById('qr-reader').classList.add('hidden');
-        }
-
-        function startScanner() {
-            document.getElementById('qr-reader').classList.remove('hidden');
-            const scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
-            scanner.render(text => { scanner.clear(); verifyByPhone(text); });
-        }
-
-        async function verifyByPhone(phoneVal) {
-            const phone = phoneVal || document.getElementById('w-search-phone').value;
-            const snap = await db.collection('accounts').where('phone', '==', phone).get();
-            const res = document.getElementById('worker-result');
-            res.classList.remove('hidden');
-            if(!snap.empty) {
-                const d = snap.docs[0].data();
-                res.innerHTML = `
-                    <p class="text-[10px] font-bold text-emerald-600 uppercase mb-2">Verified Client</p>
-                    <h3 class="text-xl font-black text-emerald-950">${d.name}</h3>
-                    <p class="text-sm font-bold opacity-60 mb-4">Balance: ₹${d.balance.toLocaleString()}</p>
-                    <button onclick="collectCash('${snap.docs[0].id}', ${d.denom})" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold">Collect Monthly ₹${d.denom}</button>
-                `;
-            } else { res.innerHTML = `<p class="text-red-500 font-bold">Client Not Found!</p>`; }
-        }
-
-        async function collectCash(id, amt) {
-            await db.collection('accounts').doc(id).update({
-                balance: firebase.firestore.FieldValue.increment(amt),
-                paid_count: firebase.firestore.FieldValue.increment(1)
-            });
-            alert("Payment Collected!");
-            nav('view-selector');
         }
     </script>
 </body>
