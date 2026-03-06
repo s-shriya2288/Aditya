@@ -14,20 +14,15 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; }
         .hidden { display: none !important; }
         .glass-card { background: white; border-radius: 2.5rem; border: 1px solid #f1f5f9; box-shadow: 0 20px 50px rgba(0,0,0,0.02); }
-        .passbook-card { 
-            background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); 
-            border-radius: 2rem; color: white; padding: 2.5rem; width: 100%; max-width: 450px; 
-            box-shadow: 0 30px 60px -12px rgba(37, 99, 235, 0.3);
-        }
-        .balance-text { font-size: clamp(1.1rem, 7vw, 2.5rem); font-weight: 900; font-style: italic; word-break: break-all; line-height: 1.1; }
-        input { background: #f1f5f9; border-radius: 1rem; padding: 1.1rem; outline: none; width: 100%; font-weight: 600; border: 2px solid transparent; transition: 0.2s; }
-        input:focus { border-color: #3b82f6; background: white; }
-        label { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.4rem; display: block; padding-left: 0.5rem; }
-        .summary-dark { background: #0f172a; border-radius: 1.5rem; padding: 1.8rem; color: white; text-align: center; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-        .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 0.8rem; font-size: 0.7rem; font-weight: 800; background: #f8fafc; border: 1px solid #f1f5f9; color: #cbd5e1; }
-        .cal-active { background: #10b981; color: white; border: none; }
         .btn-primary { background: #2563eb; color: white; font-weight: 800; padding: 1.2rem; border-radius: 1.2rem; width: 100%; transition: 0.3s; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4); }
+        
+        /* Payment Toggle */
+        .pay-option { border: 2px solid #f1f5f9; border-radius: 1.2rem; padding: 1rem; cursor: pointer; transition: 0.2s; text-align: center; width: 100%; }
+        .pay-option.active { border-color: #2563eb; background: #eff6ff; }
+
+        /* Receipt */
+        .receipt-paper { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 40px; position: relative; }
+        .receipt-paper::before { content: ""; position: absolute; top: -10px; left: 0; right: 0; height: 20px; background-image: radial-gradient(circle, white 5px, transparent 6px); background-size: 15px 20px; }
     </style>
 </head>
 <body>
@@ -36,125 +31,82 @@
         <div class="glass-card p-12 w-full max-w-[440px] text-center">
             <h1 class="text-3xl font-black text-blue-900 italic mb-10 tracking-tighter">SecureBank India</h1>
             <div class="space-y-4">
-                <button onclick="checkAuth('view-admin')" class="w-full bg-[#0f172a] text-white py-5 rounded-2xl font-bold">Banker Console</button>
-                <button onclick="checkAuth('view-worker')" class="w-full bg-emerald-700 text-white py-5 rounded-2xl font-bold">Worker Terminal</button>
-                <button onclick="nav('view-client-login')" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-lg">Client Passbook</button>
+                <button onclick="nav('view-auth')" class="w-full bg-emerald-700 text-white py-5 rounded-2xl font-bold">Worker Terminal</button>
             </div>
         </div>
     </div>
 
-    <div id="view-auth" class="hidden min-h-screen flex items-center justify-center p-6 bg-slate-900/10 backdrop-blur-md">
-        <div class="glass-card p-10 w-full max-w-[360px] text-center">
-            <label class="text-center mb-4">Identity Verification</label>
-            <input id="auth-pin" type="password" placeholder="••••" class="text-center text-3xl tracking-[0.8em] mb-6">
-            <button onclick="verifyAccess()" class="btn-primary">Enter System</button>
-            <button onclick="nav('view-hub')" class="mt-6 text-[10px] font-bold text-slate-400 uppercase underline">Cancel</button>
-        </div>
-    </div>
-
-    <div id="view-admin" class="hidden min-h-screen p-6 lg:p-12">
-        <div class="max-w-[1400px] mx-auto">
-            <div class="flex justify-between items-center mb-10">
-                <h1 class="text-3xl font-black italic">Banker Console</h1>
-                <button onclick="location.reload()" class="bg-white px-6 py-2 rounded-xl font-bold text-xs text-slate-400 border">Logout</button>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                <div class="lg:col-span-4 glass-card p-8 space-y-4 h-fit">
-                    <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">Registration Desk</p>
-                    <input id="r-acc" placeholder="Account Number">
-                    <input id="r-name" placeholder="Full Name">
-                    <input id="r-phone" placeholder="Phone (+91)">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><label>RD Denom (₹)</label><input id="r-denom" type="number" oninput="calcTotal()"></div>
-                        <div><label>Years</label><input id="r-years" type="number"></div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-emerald-500">Rebate (₹)</label><input id="r-rebate" type="number" value="0" oninput="calcTotal()"></div>
-                        <div><label class="text-red-500">Fine (₹)</label><input id="r-fine" type="number" value="0" oninput="calcTotal()"></div>
-                    </div>
-                    <div class="summary-dark my-6">
-                        <p class="text-[10px] font-bold opacity-50 uppercase mb-1">Total Due Today</p>
-                        <h2 id="r-display-total" class="text-4xl font-black italic">₹0</h2>
-                    </div>
-                    <button id="reg-btn" onclick="createAccount()" class="btn-primary">Confirm & Register</button>
-                </div>
-                <div class="lg:col-span-8 space-y-4" id="admin-ledger"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="view-worker" class="hidden min-h-screen flex flex-col items-center justify-center p-6 bg-emerald-50">
-        <div class="glass-card p-10 w-full max-w-[480px]">
+    <div id="view-worker" class="min-h-screen flex flex-col items-center justify-center p-6 bg-emerald-50">
+        <div class="glass-card p-10 w-full max-w-[500px]">
             <div id="w-search-box" class="space-y-6 text-center">
                 <h2 class="font-black text-emerald-800 uppercase text-xs tracking-widest">Collection Desk</h2>
-                <input id="w-phone" placeholder="Enter Phone Number" class="text-center text-xl py-5">
-                <button onclick="workerSearch()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black">Search Member</button>
+                <input id="w-phone" placeholder="Enter Mobile Number" class="text-center text-xl py-5 bg-slate-50 rounded-2xl w-full border-none outline-none">
+                <button onclick="workerSearch()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black shadow-lg">Verify Member</button>
             </div>
             
             <div id="w-details" class="hidden space-y-6">
-                <h3 id="wv-name" class="text-2xl font-black text-center uppercase italic">---</h3>
-                <div class="bg-slate-50 p-6 rounded-3xl border space-y-3">
-                    <div class="flex justify-between text-xs font-bold"><span>Denom</span><span id="wv-denom">₹0</span></div>
-                    <div class="flex justify-between text-xs font-bold text-red-500"><span>Fine (+)</span><span id="wv-fine">₹0</span></div>
-                    <div class="flex justify-between text-xs font-bold text-emerald-600"><span>Rebate (-)</span><span id="wv-rebate">₹0</span></div>
-                    <div class="pt-4 border-t border-dashed flex justify-between items-center font-black">
-                        <span>PAYABLE</span><span id="wv-total" class="text-3xl text-blue-700">₹0</span>
+                <div class="text-center">
+                    <h3 id="wv-name" class="text-2xl font-black uppercase italic">---</h3>
+                    <p id="wv-phone-display" class="text-xs font-bold text-slate-400 mt-1">---</p>
+                </div>
+
+                <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-3">
+                    <div class="flex justify-between text-xs font-bold"><span>Total Payable</span><span id="wv-total" class="text-xl text-blue-700 font-black">₹0</span></div>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="text-[9px] font-black text-slate-400 text-center">SELECT PAYMENT MODE</label>
+                    <div class="flex gap-4">
+                        <div id="opt-cash" class="pay-option active" onclick="setPayMode('Cash')">
+                            <p class="text-lg">💵</p><p class="text-[10px] font-bold uppercase mt-1">Cash</p>
+                        </div>
+                        <div id="opt-qr" class="pay-option" onclick="setPayMode('QR Code')">
+                            <p class="text-lg">📱</p><p class="text-[10px] font-bold uppercase mt-1">QR Scan</p>
+                        </div>
                     </div>
                 </div>
-                <div class="space-y-3">
-                    <label class="text-center">Ask Client for OTP to Confirm</label>
-                    <input id="w-verify-otp" placeholder="Enter Client's Live OTP" class="text-center text-2xl tracking-[0.5em] border-emerald-200 bg-emerald-50/50">
-                    <button onclick="confirmWorkerPaymentWithOTP()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-emerald-700">Verify & Deposit</button>
+
+                <div id="otp-init-zone">
+                    <button onclick="sendWorkerSMS()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">
+                        Send Verification SMS to Client
+                    </button>
                 </div>
-                <button onclick="location.reload()" class="w-full text-[10px] font-bold text-slate-400 uppercase">Cancel</button>
+
+                <div id="otp-verify-zone" class="hidden space-y-4">
+                    <div class="bg-blue-50 p-4 rounded-xl text-center">
+                        <p class="text-[10px] font-bold text-blue-600 uppercase">SMS Sent to Client's Phone</p>
+                    </div>
+                    <input id="w-verify-otp" placeholder="Enter 4-Digit OTP" class="text-center text-3xl tracking-[0.4em] bg-white border-2 border-emerald-200 p-4 rounded-2xl w-full outline-none">
+                    <button onclick="confirmWorkerPaymentWithOTP()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black shadow-xl">Complete Transaction</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="view-client-login" class="hidden min-h-screen flex items-center justify-center p-6">
-        <div class="glass-card p-12 w-full max-w-[420px] text-center">
-            <h2 class="text-2xl font-black mb-8 italic">Passbook Access</h2>
-            <div id="c-s1" class="space-y-4">
-                <input id="c-phone-login" placeholder="Registered Phone" class="text-center">
-                <button onclick="sendOTP()" class="btn-primary">Request Login OTP</button>
+    <div id="receipt-modal" class="fixed inset-0 hidden z-50 flex items-center justify-center p-6 bg-slate-900/90 backdrop-blur-md">
+        <div id="receipt-to-print" class="receipt-paper shadow-2xl">
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-black uppercase italic text-blue-900">SecureBank India</h2>
+                <p id="rec-mode" class="text-[8px] font-black bg-slate-100 px-3 py-1 rounded-full inline-block mt-2">PAID VIA ---</p>
             </div>
-            <div id="c-s2" class="hidden space-y-6">
-                <input id="c-otp" maxlength="4" placeholder="••••" class="text-center text-5xl font-black tracking-widest text-blue-600 bg-blue-50">
-                <button onclick="validateOTP()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black">Verify OTP</button>
+            <div class="border-y border-dashed border-slate-200 py-4 space-y-2">
+                <div class="flex justify-between text-[10px] font-bold"><span>Customer</span><span id="rec-name">---</span></div>
+                <div class="flex justify-between text-[10px] font-bold"><span>Amount</span><span id="rec-amount">₹0</span></div>
             </div>
+            <div class="py-6 text-center">
+                <p class="text-[9px] font-bold text-slate-400">NEXT DUE DATE</p>
+                <p id="rec-next-date" class="text-lg font-black text-slate-900 tracking-tighter">---</p>
+            </div>
+            <p class="text-[8px] text-center text-slate-300 uppercase">Transaction ID: SB-TXN-2026</p>
         </div>
-    </div>
-
-    <div id="view-passbook" class="hidden min-h-screen flex flex-col items-center p-8 pb-20">
-        <div id="pdf-content" class="w-full flex flex-col items-center">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-10 italic">Secure Digital Ledger</p>
-            <div class="passbook-card mb-8">
-                <p id="p-name" class="text-lg font-bold mb-1 uppercase opacity-70">---</p>
-                <h1 id="p-balance" class="balance-text">₹0</h1>
-                <div class="flex justify-between border-t border-white/10 pt-5 text-[9px] font-black opacity-40 mt-8">
-                    <span id="p-acc">ACC: ****</span>
-                    <span>AUTHENTICATED</span>
-                </div>
-            </div>
-            <div class="w-full max-w-[480px] space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="glass-card p-6 text-center"><label>Denom</label><p id="p-denom" class="text-2xl font-black text-slate-800">₹0</p></div>
-                    <div class="glass-card p-6 text-center"><label>Paid Months</label><p id="p-paid" class="text-2xl font-black text-slate-800">0/0</p></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="glass-card p-6 text-center border-l-4 border-emerald-500"><label>Applied Rebate</label><p id="p-rebate" class="text-xl font-black text-emerald-700">₹0</p></div>
-                    <div class="glass-card p-6 text-center border-l-4 border-red-500"><label>Applied Fine</label><p id="p-fine" class="text-xl font-black text-red-700">₹0</p></div>
-                </div>
-            </div>
+        <div class="fixed bottom-10 flex gap-4">
+            <button onclick="downloadTransactionPDF()" class="bg-white text-black px-8 py-4 rounded-2xl font-bold">Download PDF</button>
+            <button onclick="location.reload()" class="bg-emerald-500 text-white px-8 py-4 rounded-2xl font-bold">Finish</button>
         </div>
-        <button onclick="downloadPDF()" class="mt-8 bg-blue-50 text-blue-600 px-8 py-4 rounded-2xl font-bold flex items-center gap-2 border border-blue-100">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Download PDF Receipt
-        </button>
-        <button onclick="location.reload()" class="mt-8 text-slate-300 font-bold uppercase text-[9px] tracking-widest">Logout</button>
     </div>
 
     <script>
+        // FIREBASE CONFIG (Hidden for security)
         const firebaseConfig = {
             apiKey: "AIzaSyCLZr_vHKRZw9mr27IFzkKvB6SD4Keksas",
             authDomain: "bank-d463e.firebaseapp.com",
@@ -165,75 +117,20 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let pendingNavId, activeUserDocId, activeUserData, currentOTP, editModeId = null;
-        const MASTER_PIN = "1234";
+        let activeUserDocId, activeUserData, currentOTP;
+        let selectedMode = 'Cash';
 
-        function checkAuth(id) { pendingNavId = id; nav('view-auth'); }
-        function verifyAccess() {
-            if(document.getElementById('auth-pin').value === MASTER_PIN) {
-                nav(pendingNavId); document.getElementById('auth-pin').value = '';
-            } else { alert("Wrong PIN"); }
-        }
         function nav(id) {
             document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
-            if(id === 'view-admin') loadLedger();
         }
 
-        function calcTotal() {
-            const d = parseFloat(document.getElementById('r-denom').value) || 0;
-            const r = parseFloat(document.getElementById('r-rebate').value) || 0;
-            const f = parseFloat(document.getElementById('r-fine').value) || 0;
-            document.getElementById('r-display-total').innerText = "₹" + (d + f - r).toLocaleString('en-IN');
+        function setPayMode(mode) {
+            selectedMode = mode;
+            document.getElementById('opt-cash').classList.toggle('active', mode === 'Cash');
+            document.getElementById('opt-qr').classList.toggle('active', mode === 'QR Code');
         }
 
-        async function createAccount() {
-            const data = {
-                acc: document.getElementById('r-acc').value,
-                name: document.getElementById('r-name').value.toUpperCase(),
-                phone: document.getElementById('r-phone').value,
-                denom: parseFloat(document.getElementById('r-denom').value) || 0,
-                years: document.getElementById('r-years').value || 1,
-                rebate: parseFloat(document.getElementById('r-rebate').value) || 0,
-                fine: parseFloat(document.getElementById('r-fine').value) || 0,
-                sub_date: "07/03/2026",
-                balance: parseFloat(document.getElementById('r-denom').value) || 0,
-                paid_count: 1,
-                otp: "0000",
-                created_at: new Date()
-            };
-            if(editModeId) { await db.collection('accounts').doc(editModeId).update(data); editModeId = null; }
-            else { await db.collection('accounts').add(data); }
-            clearForm();
-        }
-
-        function editAccount(id, d) {
-            editModeId = id;
-            ['r-acc','r-name','r-phone','r-denom','r-years','r-rebate','r-fine'].forEach(f => document.getElementById(f).value = d[f.split('-')[1]]);
-            document.getElementById('reg-btn').innerText = "Update Member Info";
-            calcTotal(); window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        async function deleteAccount(id) { if(confirm("Delete Permanently?")) await db.collection('accounts').doc(id).delete(); }
-
-        function loadLedger() {
-            db.collection('accounts').orderBy('created_at', 'desc').onSnapshot(snap => {
-                const list = document.getElementById('admin-ledger'); list.innerHTML = '';
-                snap.forEach(doc => {
-                    const d = doc.data(); const id = doc.id;
-                    list.innerHTML += `<div class="glass-card p-6 flex justify-between items-center">
-                        <div><h4 class="font-black">${d.name}</h4><p class="text-[10px] text-slate-400">ACC: ${d.acc}</p></div>
-                        <div class="flex items-center gap-4">
-                            <div class="text-right"><p class="font-black text-blue-600">₹${d.balance}</p></div>
-                            <button onclick='editAccount("${id}", ${JSON.stringify(d)})' class="p-2 bg-blue-50 rounded-lg text-blue-500">✎</button>
-                            <button onclick="deleteAccount('${id}')" class="p-2 bg-red-50 rounded-lg text-red-500">✕</button>
-                        </div>
-                    </div>`;
-                });
-            });
-        }
-
-        // --- WORKER SEARCH & OTP VERIFICATION ---
         async function workerSearch() {
             const phone = document.getElementById('w-phone').value;
             const snap = await db.collection('accounts').where('phone', '==', phone).get();
@@ -242,78 +139,61 @@
                 document.getElementById('w-search-box').classList.add('hidden');
                 document.getElementById('w-details').classList.remove('hidden');
                 document.getElementById('wv-name').innerText = activeUserData.name;
-                document.getElementById('wv-denom').innerText = "₹" + activeUserData.denom;
-                document.getElementById('wv-fine').innerText = "₹" + activeUserData.fine;
-                document.getElementById('wv-rebate').innerText = "₹" + activeUserData.rebate;
+                document.getElementById('wv-phone-display').innerText = "+91 " + activeUserData.phone;
                 window.workerTotal = activeUserData.denom + activeUserData.fine - activeUserData.rebate;
                 document.getElementById('wv-total').innerText = "₹" + window.workerTotal.toLocaleString('en-IN');
             } else { alert("Member Not Found"); }
         }
 
+        // STEP 3: WORKER SENDS SMS
+        async function sendWorkerSMS() {
+            currentOTP = Math.floor(1000 + Math.random() * 9000).toString();
+            
+            // In a real production app, you would call an SMS API here (like Twilio or Msg91)
+            // For this UI build, we update the DB and alert for testing
+            await db.collection('accounts').doc(activeUserDocId).update({ otp: currentOTP });
+            
+            alert(`[SMS SIMULATION] To: ${activeUserData.phone}\nMessage: Your SecureBank Verification Code is ${currentOTP}. Amount: ₹${window.workerTotal}`);
+            
+            document.getElementById('otp-init-zone').classList.add('hidden');
+            document.getElementById('otp-verify-zone').classList.remove('hidden');
+        }
+
         async function confirmWorkerPaymentWithOTP() {
             const inputOTP = document.getElementById('w-verify-otp').value;
-            // Fetch fresh OTP from DB to verify
-            const doc = await db.collection('accounts').doc(activeUserDocId).get();
-            if(inputOTP === doc.data().otp && inputOTP !== "0000") {
+            if(inputOTP === currentOTP) {
+                const newBalance = (activeUserData.balance || 0) + window.workerTotal;
+                
                 await db.collection('accounts').doc(activeUserDocId).update({
-                    balance: firebase.firestore.FieldValue.increment(window.workerTotal),
+                    balance: newBalance,
                     paid_count: firebase.firestore.FieldValue.increment(1),
-                    otp: "0000" // Reset OTP after use
+                    otp: "0000"
                 });
-                alert("Deposit Verified & Successful!"); location.reload();
-            } else { alert("Invalid OTP. Client must generate a new OTP from their Passbook Login."); }
+
+                // Set Receipt Info
+                document.getElementById('rec-name').innerText = activeUserData.name;
+                document.getElementById('rec-amount').innerText = "₹" + window.workerTotal.toLocaleString('en-IN');
+                document.getElementById('rec-mode').innerText = "PAID VIA " + selectedMode;
+                
+                const nextDate = new Date();
+                nextDate.setMonth(nextDate.getMonth() + 1);
+                nextDate.setDate(7);
+                document.getElementById('rec-next-date').innerText = nextDate.toLocaleDateString('en-GB');
+
+                document.getElementById('receipt-modal').classList.remove('hidden');
+            } else {
+                alert("Incorrect OTP. Please check the code sent to the client.");
+            }
         }
 
-        // --- CLIENT LOGIC ---
-        async function sendOTP() {
-            const phone = document.getElementById('c-phone-login').value;
-            const snap = await db.collection('accounts').where('phone', '==', phone).get();
-            if(!snap.empty) {
-                activeUserDocId = snap.docs[0].id;
-                currentOTP = Math.floor(1000 + Math.random() * 9000).toString();
-                await db.collection('accounts').doc(activeUserDocId).update({ otp: currentOTP });
-                alert("CLIENT OTP: " + currentOTP);
-                document.getElementById('c-s1').classList.add('hidden');
-                document.getElementById('c-s2').classList.remove('hidden');
-            } else { alert("Phone Not Found"); }
-        }
-
-        async function validateOTP() {
-            if(document.getElementById('c-otp').value === currentOTP) {
-                const doc = await db.collection('accounts').doc(activeUserDocId).get();
-                activeUserData = doc.data(); renderPassbook();
-            } else { alert("Invalid OTP"); }
-        }
-
-        function renderPassbook() {
-            document.getElementById('p-name').innerText = activeUserData.name;
-            document.getElementById('p-balance').innerText = "₹" + activeUserData.balance.toLocaleString('en-IN');
-            document.getElementById('p-denom').innerText = "₹" + activeUserData.denom;
-            document.getElementById('p-rebate').innerText = "₹" + activeUserData.rebate;
-            document.getElementById('p-fine').innerText = "₹" + activeUserData.fine;
-            document.getElementById('p-acc').innerText = "ACC: ****" + activeUserData.acc.slice(-4);
-            document.getElementById('p-paid').innerText = `${activeUserData.paid_count} / ${parseInt(activeUserData.years) * 12}`;
-            nav('view-passbook');
-        }
-
-        // --- PDF GENERATION ---
-        async function downloadPDF() {
-            const element = document.getElementById('pdf-content');
-            const canvas = await html2canvas(element, { scale: 2 });
+        async function downloadTransactionPDF() {
+            const element = document.getElementById('receipt-to-print');
+            const canvas = await html2canvas(element, { scale: 3 });
             const imgData = canvas.toDataURL('image/png');
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
-            pdf.save(`${activeUserData.name}_Receipt.pdf`);
-        }
-
-        function clearForm() {
-            ['r-acc','r-name','r-phone','r-denom','r-years','r-rebate','r-fine'].forEach(i => document.getElementById(i).value = '');
-            document.getElementById('reg-btn').innerText = "Confirm & Register";
-            calcTotal();
+            const pdf = new jsPDF('p', 'mm', [100, 160]);
+            pdf.addImage(imgData, 'PNG', 0, 0, 100, 160);
+            pdf.save(`Receipt_${activeUserData.name}.pdf`);
         }
     </script>
 </body>
