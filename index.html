@@ -11,94 +11,125 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; margin: 0; scroll-behavior: smooth; }
         .hidden { display: none !important; }
+        .glass-card { background: white; border-radius: 3rem; border: 1px solid #f1f5f9; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.03); }
         
-        .glass-card { background: white; border-radius: 3.5rem; border: 1px solid #f1f5f9; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.03); }
-        
-        /* FIXED: Balance Overflow Style */
         .passbook-card { 
             background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); 
-            border-radius: 3rem; color: white; padding: 3rem; width: 100%; max-width: 500px; 
-            box-shadow: 0 30px 60px -12px rgba(37, 99, 235, 0.3); position: relative;
-            min-height: 280px; display: flex; flex-direction: column; justify-content: space-between;
+            border-radius: 2.5rem; color: white; padding: 2.5rem; width: 100%; max-width: 480px; 
+            box-shadow: 0 30px 60px -12px rgba(37, 99, 235, 0.3);
         }
-        .balance-text { 
-            font-size: clamp(1.2rem, 7vw, 3.2rem); 
-            line-height: 1.1; font-weight: 900; font-style: italic; letter-spacing: -0.05em;
-            word-break: break-all; overflow-wrap: break-word; margin-bottom: 1rem;
-        }
+        .balance-text { font-size: clamp(1.2rem, 7vw, 3rem); font-weight: 900; font-style: italic; word-break: break-all; }
 
-        input { background: #f1f5f9; border-radius: 1.5rem; padding: 1.5rem; outline: none; width: 100%; font-weight: 700; border: 2px solid transparent; transition: 0.3s; }
+        input { background: #f1f5f9; border-radius: 1.2rem; padding: 1.2rem; outline: none; width: 100%; font-weight: 700; border: 2px solid transparent; transition: 0.3s; }
         input:focus { border-color: #3b82f6; background: white; }
 
-        /* Receipt Style for Worker */
-        .receipt-container { background: #fdfdfd; border-radius: 2.5rem; padding: 2rem; border: 1px solid #f1f5f9; position: relative; }
-        .receipt-line { display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px dashed #e2e8f0; }
-        
-        /* Calendar */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; width: 100%; }
-        .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 1rem; font-size: 0.8rem; font-weight: 800; background: #f8fafc; color: #cbd5e1; border: 1px solid #f1f5f9; }
-        .cal-paid { background: #10b981; color: white; border: none; box-shadow: 0 8px 15px rgba(16, 185, 129, 0.2); }
+        .receipt-line { display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px dashed #e2e8f0; }
+        .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 0.8rem; font-size: 0.75rem; font-weight: 800; background: #f8fafc; border: 1px solid #f1f5f9; }
+        .cal-paid { background: #10b981; color: white; border: none; }
     </style>
 </head>
 <body>
 
     <div id="view-hub" class="min-h-screen flex items-center justify-center p-6">
-        <div class="glass-card p-12 w-full max-w-[480px] text-center">
-            <h1 class="text-3xl font-black text-blue-900 italic mb-10 tracking-tighter">SecureBank India</h1>
+        <div class="glass-card p-12 w-full max-w-[450px] text-center">
+            <h1 class="text-3xl font-black text-blue-900 italic mb-10">SecureBank India</h1>
             <div class="space-y-4">
-                <button onclick="checkAuth('view-admin')" class="w-full bg-[#0f172a] text-white py-6 rounded-3xl font-bold">Banker Console</button>
-                <button onclick="checkAuth('view-worker')" class="w-full bg-emerald-700 text-white py-6 rounded-3xl font-bold">Worker Terminal</button>
-                <button onclick="nav('view-client-login')" class="w-full bg-blue-600 text-white py-6 rounded-3xl font-bold shadow-lg">Client Passbook</button>
+                <button onclick="checkAuth('view-admin')" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold">Banker Console</button>
+                <button onclick="checkAuth('view-worker')" class="w-full bg-emerald-700 text-white py-5 rounded-2xl font-bold">Worker Terminal</button>
+                <button onclick="nav('view-client-login')" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-lg">Client Passbook</button>
             </div>
         </div>
     </div>
 
-    <div id="view-auth" class="hidden min-h-screen flex items-center justify-center p-6 bg-slate-900/5 backdrop-blur-sm">
-        <div class="glass-card p-10 w-full max-w-[380px] text-center">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Identity Verification</p>
-            <input id="auth-pin" type="password" placeholder="••••" class="text-center text-3xl tracking-[1rem] mb-6">
-            <button onclick="verifyAccess()" class="w-full bg-slate-900 text-white py-5 rounded-3xl font-black">Verify Access</button>
-            <button onclick="nav('view-hub')" class="mt-6 text-[10px] font-bold text-slate-300 uppercase underline">Cancel</button>
+    <div id="view-admin" class="hidden min-h-screen p-8">
+        <div class="max-w-[1200px] mx-auto">
+            <h1 class="text-2xl font-black mb-8 italic">Register New RD Account</h1>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass-card p-8 space-y-4">
+                    <input id="r-acc" placeholder="Account Number">
+                    <input id="r-name" placeholder="Full Name">
+                    <input id="r-phone" placeholder="Phone Number">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input id="r-denom" type="number" placeholder="Denom (₹)">
+                        <input id="r-years" type="number" placeholder="Years">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input id="r-rebate" type="number" placeholder="Rebate (₹)">
+                        <input id="r-fine" type="number" placeholder="Fine (₹)">
+                    </div>
+                    <div class="p-4 bg-blue-50 rounded-xl">
+                        <label class="text-[10px] font-bold text-blue-400 block mb-1">DEPOSIT DATE</label>
+                        <input id="r-date" type="date" class="!bg-transparent !p-0">
+                    </div>
+                    <button onclick="createAccount()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">Register Member</button>
+                </div>
+                <div id="admin-ledger" class="space-y-3"></div>
+            </div>
         </div>
     </div>
 
-    <div id="view-client-login" class="hidden min-h-screen flex items-center justify-center p-6">
-        <div class="glass-card p-10 w-full max-w-[420px] text-center">
-            <h2 class="text-2xl font-black text-blue-900 italic mb-8">Access Portal</h2>
-            <div id="c-s1" class="space-y-4">
-                <input id="c-phone-login" placeholder="Phone Number" class="text-center">
-                <button id="otp-btn" onclick="sendOTP()" class="w-full bg-blue-600 text-white py-5 rounded-3xl font-black">Generate New OTP</button>
+    <div id="view-worker" class="hidden min-h-screen flex flex-col items-center p-8 bg-[#f0fdf4]">
+        <div class="glass-card p-10 w-full max-w-[500px]">
+            <div id="w-search-box" class="space-y-4">
+                <input id="w-phone" placeholder="Client Phone Number" class="text-center">
+                <button onclick="workerSearch()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black">Verify Client</button>
             </div>
-            <div id="c-s2" class="hidden space-y-6">
-                <input id="c-otp" maxlength="4" placeholder="0 0 0 0" class="text-center text-4xl font-black tracking-widest">
-                <button onclick="validateOTP()" class="w-full bg-slate-900 text-white py-5 rounded-3xl font-black">Verify & Enter</button>
+            <div id="w-details" class="hidden">
+                <h3 id="wv-name" class="text-2xl font-black text-center mb-6 uppercase italic">---</h3>
+                <div class="bg-slate-50 p-6 rounded-2xl mb-6">
+                    <div class="receipt-line"><span>Denomination</span><span id="wv-denom">₹0</span></div>
+                    <div class="receipt-line"><span class="text-red-500">Late Fine (+)</span><span id="wv-fine" class="text-red-500">₹0</span></div>
+                    <div class="receipt-line"><span class="text-emerald-600">Rebate (-)</span><span id="wv-rebate" class="text-emerald-600">₹0</span></div>
+                    <div class="mt-4 pt-4 border-t border-slate-200 flex justify-between font-black">
+                        <span>NET TOTAL</span><span id="wv-total" class="text-blue-700 text-2xl">₹0</span>
+                    </div>
+                </div>
+                <button onclick="confirmWorkerPayment()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black">Confirm Collection</button>
             </div>
         </div>
     </div>
 
     <div id="view-passbook" class="hidden flex flex-col items-center p-8 pb-20">
         <div class="passbook-card mb-10">
-            <div>
-                <p id="p-name" class="text-xl font-bold mb-1 uppercase tracking-tight opacity-80">---</p>
-                <h1 id="p-balance" class="balance-text">₹0</h1>
-            </div>
-            <div class="flex justify-between border-t border-white/10 pt-6 text-[9px] font-black opacity-40 uppercase tracking-widest">
-                <span>V 3.0 PRO</span>
+            <p id="p-name" class="text-lg font-bold mb-1 uppercase opacity-80">---</p>
+            <h1 id="p-balance" class="balance-text">₹0</h1>
+            <div class="flex justify-between border-t border-white/10 pt-4 text-[9px] font-black opacity-40 mt-4">
                 <span id="p-acc">ACC: ****</span>
+                <span>SECURE LEDGER</span>
             </div>
         </div>
-
-        <div class="w-full max-w-[500px] space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="glass-card p-6"><p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Monthly Denom</p><p id="p-denom" class="text-xl font-black">₹0</p></div>
-                <div class="glass-card p-6"><p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Months Paid</p><p id="p-paid" class="text-xl font-black">0/0</p></div>
+        <div class="w-full max-w-[480px] space-y-4">
+            <div class="grid grid-cols-3 gap-3">
+                <div class="glass-card p-4 text-center"><p class="text-[8px] font-bold text-slate-400 uppercase">Denom</p><p id="p-denom" class="font-black text-sm">₹0</p></div>
+                <div class="glass-card p-4 text-center"><p class="text-[8px] font-bold text-red-400 uppercase">Fine</p><p id="p-fine" class="font-black text-sm text-red-500">₹0</p></div>
+                <div class="glass-card p-4 text-center"><p class="text-[8px] font-bold text-emerald-500 uppercase">Rebate</p><p id="p-rebate" class="font-black text-sm text-emerald-600">₹0</p></div>
             </div>
             <div class="glass-card p-8">
-                <p class="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-6 text-center">Submission Calendar</p>
-                <div id="calendar-view" class="calendar-grid"></div>
+                <p id="p-paid" class="text-center font-black text-blue-900 mb-6 uppercase text-xs tracking-widest">Paid: 0/0</p>
+                <div id="calendar-view" class="grid grid-cols-7 gap-2"></div>
             </div>
         </div>
-        <button onclick="location.reload()" class="mt-12 text-slate-300 font-bold uppercase text-[9px] tracking-widest">Logout</button>
+        <button onclick="location.reload()" class="mt-8 text-slate-300 font-bold uppercase text-[9px]">Exit Passbook</button>
+    </div>
+
+    <div id="view-auth" class="hidden min-h-screen flex items-center justify-center p-6 bg-slate-900/5 backdrop-blur-sm">
+        <div class="glass-card p-10 w-full max-w-[380px] text-center">
+            <input id="auth-pin" type="password" placeholder="PIN" class="text-center text-3xl mb-6">
+            <button onclick="verifyAccess()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Enter</button>
+        </div>
+    </div>
+
+    <div id="view-client-login" class="hidden min-h-screen flex items-center justify-center p-6">
+        <div class="glass-card p-10 w-full max-w-[420px] text-center">
+            <div id="c-s1" class="space-y-4">
+                <input id="c-phone-login" placeholder="Phone Number">
+                <button onclick="sendOTP()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">Get Dynamic OTP</button>
+            </div>
+            <div id="c-s2" class="hidden space-y-6">
+                <input id="c-otp" maxlength="4" placeholder="0000" class="text-center text-4xl">
+                <button onclick="validateOTP()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Unlock</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -118,58 +149,96 @@
         let currentOTP = null;
         const MASTER_PIN = "1234";
 
-        function checkAuth(targetId) { pendingNavId = targetId; nav('view-auth'); }
-        function verifyAccess() {
-            if(document.getElementById('auth-pin').value === MASTER_PIN) { nav(pendingNavId); document.getElementById('auth-pin').value = ''; }
-            else { alert("Incorrect PIN"); }
-        }
-        function nav(id) { document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+        function checkAuth(id) { pendingNavId = id; nav('view-auth'); }
+        function verifyAccess() { if(document.getElementById('auth-pin').value === MASTER_PIN) { nav(pendingNavId); } else { alert("Denied"); } }
+        function nav(id) { document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id === 'view-admin') loadLedger(); }
 
-        // --- NEW DYNAMIC OTP LOGIC ---
+        async function createAccount() {
+            const d = {
+                acc: document.getElementById('r-acc').value,
+                name: document.getElementById('r-name').value.toUpperCase(),
+                phone: document.getElementById('r-phone').value,
+                denom: parseFloat(document.getElementById('r-denom').value),
+                years: document.getElementById('r-years').value,
+                rebate: parseFloat(document.getElementById('r-rebate').value) || 0,
+                fine: parseFloat(document.getElementById('r-fine').value) || 0,
+                sub_date: document.getElementById('r-date').value,
+                balance: parseFloat(document.getElementById('r-denom').value),
+                paid_count: 1,
+                otp: "0000",
+                created_at: new Date()
+            };
+            await db.collection('accounts').add(d);
+            alert("Registered!");
+            loadLedger();
+        }
+
+        async function workerSearch() {
+            const phone = document.getElementById('w-phone').value;
+            const snap = await db.collection('accounts').where('phone', '==', phone).get();
+            if(!snap.empty) {
+                activeUserData = snap.docs[0].data();
+                activeUserDocId = snap.docs[0].id;
+                document.getElementById('w-search-box').classList.add('hidden');
+                document.getElementById('w-details').classList.remove('hidden');
+                document.getElementById('wv-name').innerText = activeUserData.name;
+                document.getElementById('wv-denom').innerText = "₹" + activeUserData.denom;
+                document.getElementById('wv-fine').innerText = "₹" + activeUserData.fine;
+                document.getElementById('wv-rebate').innerText = "₹" + activeUserData.rebate;
+                window.workerTotal = activeUserData.denom + activeUserData.fine - activeUserData.rebate;
+                document.getElementById('wv-total').innerText = "₹" + window.workerTotal;
+            }
+        }
+
+        async function confirmWorkerPayment() {
+            await db.collection('accounts').doc(activeUserDocId).update({
+                balance: firebase.firestore.FieldValue.increment(window.workerTotal),
+                paid_count: firebase.firestore.FieldValue.increment(1)
+            });
+            alert("Payment Recorded!");
+            location.reload();
+        }
+
         async function sendOTP() {
-            const phone = document.getElementById('c-phone-login').value.trim();
-            const btn = document.getElementById('otp-btn');
-            btn.innerText = "Generating...";
-            
+            const phone = document.getElementById('c-phone-login').value;
             const snap = await db.collection('accounts').where('phone', '==', phone).get();
             if(!snap.empty) {
                 activeUserDocId = snap.docs[0].id;
-                // Generate fresh random OTP
-                const newOTP = Math.floor(1000 + Math.random() * 9000).toString();
-                
-                // Update it in Firestore immediately
-                await db.collection('accounts').doc(activeUserDocId).update({ otp: newOTP });
-                
-                currentOTP = newOTP;
-                alert("DYNAMIC OTP: " + newOTP);
+                currentOTP = Math.floor(1000 + Math.random() * 9000).toString();
+                await db.collection('accounts').doc(activeUserDocId).update({ otp: currentOTP });
+                alert("OTP: " + currentOTP);
                 document.getElementById('c-s1').classList.add('hidden');
                 document.getElementById('c-s2').classList.remove('hidden');
-            } else { alert("User Not Found"); btn.innerText = "Generate New OTP"; }
+            }
         }
 
-        async function validateOTP() {
-            const inputOTP = document.getElementById('c-otp').value;
-            if(inputOTP === currentOTP) {
-                const doc = await db.collection('accounts').doc(activeUserDocId).get();
-                activeUserData = doc.data();
-                renderPassbook();
-                nav('view-passbook');
-            } else { alert("Invalid OTP. Please try again."); }
-        }
+        function validateOTP() { if(document.getElementById('c-otp').value === currentOTP) { fetchAndRender(); } }
 
-        function renderPassbook() {
+        async function fetchAndRender() {
+            const doc = await db.collection('accounts').doc(activeUserDocId).get();
+            activeUserData = doc.data();
             document.getElementById('p-name').innerText = activeUserData.name;
             document.getElementById('p-balance').innerText = "₹" + activeUserData.balance.toLocaleString('en-IN');
             document.getElementById('p-denom').innerText = "₹" + activeUserData.denom;
+            document.getElementById('p-rebate').innerText = "₹" + activeUserData.rebate;
+            document.getElementById('p-fine').innerText = "₹" + activeUserData.fine;
             document.getElementById('p-acc').innerText = "ACC: ****" + activeUserData.acc.slice(-4);
-            document.getElementById('p-paid').innerText = activeUserData.paid_count + " / " + (parseInt(activeUserData.years) * 12);
+            document.getElementById('p-paid').innerText = `Paid: ${activeUserData.paid_count} / ${parseInt(activeUserData.years) * 12}`;
             
-            const calendar = document.getElementById('calendar-view');
-            calendar.innerHTML = '';
-            const dayOfDeposit = new Date(activeUserData.sub_date).getDate();
-            for(let i=1; i<=31; i++) {
-                calendar.innerHTML += `<div class="cal-day ${i === dayOfDeposit ? 'cal-paid' : ''}">${i}</div>`;
-            }
+            const cal = document.getElementById('calendar-view'); cal.innerHTML = '';
+            const day = new Date(activeUserData.sub_date).getDate();
+            for(let i=1; i<=31; i++) cal.innerHTML += `<div class="cal-day ${i===day?'cal-paid':''}">${i}</div>`;
+            nav('view-passbook');
+        }
+
+        function loadLedger() {
+            db.collection('accounts').orderBy('created_at', 'desc').onSnapshot(snap => {
+                const list = document.getElementById('admin-ledger'); list.innerHTML = '';
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    list.innerHTML += `<div class="glass-card p-4 flex justify-between"><div><p class="font-bold">${d.name}</p></div><p class="font-black text-blue-600">₹${d.balance}</p></div>`;
+                });
+            });
         }
     </script>
 </body>
