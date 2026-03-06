@@ -19,46 +19,29 @@
     <div id="view-auth" class="min-h-screen flex items-center justify-center p-6">
         <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-slate-200">
             <h2 id="auth-title" class="text-3xl font-black text-blue-900 mb-2 italic">SecureBank</h2>
-            <p id="auth-subtitle" class="text-slate-400 text-sm mb-8 font-bold uppercase tracking-wider">RD Management System</p>
-            
             <div class="space-y-4">
-                <input id="email" type="email" placeholder="Email Address" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
+                <input id="email" type="email" placeholder="Email" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
                 <input id="pass" type="password" placeholder="Password" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
-                <button id="auth-btn" onclick="handleAuth()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition">Unlock System</button>
+                <button id="auth-btn" onclick="handleAuth()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold">Unlock System</button>
             </div>
-            <button onclick="toggleReg()" id="reg-toggle" class="w-full mt-6 text-xs font-bold text-blue-500 uppercase tracking-widest">New Admin? Register</button>
-            <p id="error-msg" class="text-red-500 text-xs mt-4 text-center hidden"></p>
+            <button onclick="toggleReg()" id="reg-toggle" class="w-full mt-6 text-xs font-bold text-blue-500 uppercase tracking-widest">Register New Admin</button>
         </div>
     </div>
 
     <div id="main-app" class="hidden">
-        <nav class="bg-white p-5 shadow-sm flex justify-between items-center sticky top-0 z-50">
-            <h1 class="font-black text-blue-900 italic">SecureBank <span class="text-blue-500 font-bold text-sm text-xs">PRO</span></h1>
-            <button onclick="firebase.auth().signOut()" class="text-red-500 font-bold text-xs uppercase tracking-widest bg-red-50 px-4 py-2 rounded-full">Logout</button>
+        <nav class="bg-white p-5 shadow-sm flex justify-between items-center sticky top-0">
+            <h1 class="font-black text-blue-900 italic">SecureBank PRO</h1>
+            <button onclick="firebase.auth().signOut()" class="text-red-500 font-bold text-xs uppercase">Logout</button>
         </nav>
 
-        <div id="page-admin" class="hidden p-6 max-w-5xl mx-auto">
-            <div class="bg-white p-8 rounded-[2rem] shadow-xl mb-8 border border-slate-100">
-                <h3 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">Add New Account</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input id="adm-name" placeholder="Name (e.g. Shriya)" class="p-4 bg-slate-50 rounded-2xl border">
-                    <input id="adm-amt" type="number" placeholder="RD Amount (₹)" class="p-4 bg-slate-50 rounded-2xl border">
-                    <button onclick="addAccount()" class="bg-blue-600 text-white p-4 rounded-2xl font-bold shadow-lg">Save to Cloud</button>
-                </div>
-            </div>
-
-            <input type="text" id="search" oninput="renderAdmin()" placeholder="🔍 Search Shriya or others..." class="w-full p-5 rounded-3xl border-none shadow-sm focus:ring-2 focus:ring-blue-500 mb-6 text-lg">
-            <div id="admin-list" class="space-y-4"></div>
-        </div>
-
-        <div id="page-client" class="hidden p-6 max-w-md mx-auto">
-            <div id="pass-card" class="bg-gradient-to-br from-blue-700 to-blue-900 text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden">
-                </div>
+        <div class="p-6 max-w-4xl mx-auto">
+            <input type="text" id="search" oninput="renderList()" placeholder="🔍 Search Shriya..." class="w-full p-5 rounded-3xl border shadow-sm mb-6 text-lg">
+            <div id="client-list" class="space-y-4"></div>
         </div>
     </div>
 
     <script>
-        // YOUR REAL KEYS FROM SCREENSHOT 4
+        // UPDATED WITH YOUR ACTUAL KEYS FROM SCREENSHOT 4
         const firebaseConfig = {
             apiKey: "AIzaSyCLZr_vHKRZw9mr27IFzkKvB6SD4Keksas",
             authDomain: "bank-d463e.firebaseapp.com",
@@ -67,70 +50,48 @@
             messagingSenderId: "293213633601",
             appId: "1:293213633601:web:848fa363878f3230345ac0"
         };
+
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         let isReg = false;
-        let allAccounts = [];
+        let accounts = [
+            { name: "Shriya Shrivastav", amt: "1,00,000", acc: "SB-9921", otp: "1693" }
+        ];
 
         function toggleReg() {
             isReg = !isReg;
-            document.getElementById('auth-title').innerText = isReg ? "Register Admin" : "SecureBank";
-            document.getElementById('auth-btn').innerText = isReg ? "Create Account" : "Unlock System";
+            document.getElementById('auth-title').innerText = isReg ? "Register Admin" : "SecureBank Login";
         }
 
         async function handleAuth() {
             const e = document.getElementById('email').value;
             const p = document.getElementById('pass').value;
             try {
-                if(isReg) {
-                    const res = await auth.createUserWithEmailAndPassword(e, p);
-                    await db.collection('users').doc(res.user.uid).set({ role: 'admin', email: e });
-                } else {
-                    await auth.signInWithEmailAndPassword(e, p);
-                }
+                if(isReg) await auth.createUserWithEmailAndPassword(e, p);
+                else await auth.signInWithEmailAndPassword(e, p);
             } catch (err) { alert(err.message); }
         }
 
-        auth.onAuthStateChanged(async user => {
+        auth.onAuthStateChanged(user => {
             if(user) {
                 document.getElementById('view-auth').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
-                
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                const role = userDoc.exists ? userDoc.data().role : 'client';
-
-                if(role === 'admin') {
-                    document.getElementById('page-admin').classList.remove('hidden');
-                    db.collection('accounts').onSnapshot(snap => {
-                        allAccounts = snap.docs.map(doc => doc.data());
-                        renderAdmin();
-                    });
-                } else {
-                    document.getElementById('page-client').classList.remove('hidden');
-                    db.collection('accounts').where('email', '==', user.email).onSnapshot(renderClient);
-                }
+                renderList();
             } else {
                 document.getElementById('view-auth').classList.remove('hidden');
                 document.getElementById('main-app').classList.add('hidden');
             }
         });
 
-        async function addAccount() {
-            const name = document.getElementById('adm-name').value;
-            const amt = document.getElementById('adm-amt').value;
-            await db.collection('accounts').add({ name, amt, otp: Math.floor(1000 + Math.random() * 9000) });
-            alert("Added " + name + " to Cloud!");
-        }
-
-        function renderAdmin() {
+        function renderList() {
             const q = document.getElementById('search').value.toLowerCase();
-            const list = document.getElementById('admin-list');
-            list.innerHTML = allAccounts.filter(a => a.name.toLowerCase().includes(q)).map(a => `
-                <div class="bg-white p-6 rounded-[2rem] shadow-sm flex justify-between border border-slate-100">
-                    <div><p class="font-black uppercase">${a.name}</p><p class="text-[10px] text-slate-400 font-bold uppercase">OTP: ${a.otp}</p></div>
-                    <div class="text-right"><p class="font-black text-blue-600 text-2xl italic">₹${a.amt}</p></div>
+            const list = document.getElementById('client-list');
+            list.innerHTML = accounts.filter(a => a.name.toLowerCase().includes(q)).map(a => `
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm flex justify-between border">
+                    <div><b>${a.name}</b><br><small class="text-slate-400 font-bold uppercase">Acc: ${a.acc} | OTP: ${a.otp}</small></div>
+                    <div class="text-blue-600 font-black text-2xl italic">₹${a.amt}</div>
                 </div>
             `).join('');
         }
