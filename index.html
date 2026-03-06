@@ -3,137 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank India | Pro</title>
-    <link rel="manifest" href="manifest.json">
+    <title>SecureBank | Private Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-        .hidden { display: none; }
-    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
 </head>
-<body>
+<body class="bg-slate-100 font-sans">
 
-    <nav class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-50">
-        <h1 class="font-black text-blue-900 italic">SecureBank Pro</h1>
-        <div id="auth-status" class="text-[10px] font-bold uppercase text-slate-400">Guest Mode</div>
-    </nav>
-
-    <div id="view-login" class="min-h-[80vh] flex items-center justify-center p-6">
-        <div class="bg-white p-10 rounded-[3rem] shadow-2xl w-full max-w-md text-center">
-            <div class="mb-8">
-                <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <span class="text-3xl">🏦</span>
-                </div>
-                <h2 class="text-2xl font-black">Choose Portal</h2>
+    <div id="auth-gate" class="min-h-screen flex items-center justify-center p-6">
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md">
+            <h2 class="text-3xl font-black text-blue-900 mb-2">SecureBank</h2>
+            <p class="text-slate-400 text-sm mb-8">Unauthorized access is strictly prohibited.</p>
+            
+            <div class="space-y-4">
+                <input id="email" type="email" placeholder="Banker/User Email" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
+                <input id="pass" type="password" placeholder="Secure Password" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition">Unlock System</button>
             </div>
-            <div class="grid grid-cols-1 gap-3">
-                <button onclick="switchView('admin')" class="p-5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition">Banker Login</button>
-                <button onclick="switchView('worker')" class="p-5 bg-emerald-700 text-white rounded-2xl font-bold hover:bg-emerald-600 transition">Worker (Field)</button>
-                <button onclick="switchView('client')" class="p-5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-500 transition">Client Passbook</button>
-            </div>
+            <p id="error-msg" class="text-red-500 text-xs mt-4 text-center hidden"></p>
         </div>
     </div>
 
-    <div id="view-admin" class="hidden p-6 max-w-6xl mx-auto animate-in fade-in duration-500">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-lg border border-slate-100">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Create New RD</h3>
-                <div class="space-y-3">
-                    <input id="adm-acc" placeholder="Account Number" class="w-full p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <input id="adm-name" placeholder="Full Name" class="w-full p-4 bg-slate-50 rounded-xl border">
-                    <input id="adm-denom" type="number" placeholder="Yearly Amount (₹)" class="w-full p-4 bg-slate-50 rounded-xl border">
-                    <input id="adm-years" type="number" placeholder="Duration (Years)" class="w-full p-4 bg-slate-50 rounded-xl border">
-                    <button onclick="createAccount()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">Save to Cloud</button>
-                </div>
-            </div>
-            <div class="lg:col-span-2 space-y-6">
-                <div class="flex gap-4">
-                    <input type="text" id="search" oninput="renderAdmin()" placeholder="🔍 Search clients..." class="flex-1 p-4 bg-white rounded-2xl shadow-sm border-none">
-                </div>
-                <div id="admin-list" class="space-y-3"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="view-client" class="hidden p-6 max-w-md mx-auto">
-        <div id="client-card" class="mb-6 p-8 rounded-[3rem] shadow-2xl bg-gradient-to-br from-blue-600 to-blue-900 text-white">
-            </div>
-        <div class="bg-white p-8 rounded-[3rem] shadow-xl text-center">
-            <div id="scanner-ui">
-                <div id="reader" class="rounded-3xl overflow-hidden mb-6 bg-slate-50 border-2 border-dashed border-slate-200"></div>
-                <button onclick="startScan()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold">Open Camera</button>
-            </div>
-            <div id="otp-ui" class="hidden">
-                <h3 class="font-black text-xl mb-6">Enter Agent OTP</h3>
-                <input type="text" id="otp-entry" maxlength="4" placeholder="0000" class="w-full p-5 bg-slate-100 rounded-2xl text-center text-4xl font-black mb-6 tracking-widest border-2 border-blue-500">
-                <button onclick="verifyPayment()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-bold">Confirm & Generate Receipt</button>
-            </div>
+    <div id="main-app" class="hidden">
+        <nav class="bg-white p-4 shadow-sm flex justify-between items-center">
+            <span class="font-bold text-blue-900">🏦 SecureBank Pro</span>
+            <button onclick="handleLogout()" class="text-xs font-bold text-red-500 uppercase">Log Out</button>
+        </nav>
+        <div id="dashboard-content" class="p-6">
+            <h1 class="text-2xl font-bold">Welcome, Authorized User</h1>
         </div>
     </div>
 
     <script>
-        // FIREBASE SETUP (Replace with your keys)
-        const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." };
+        const firebaseConfig = { /* PASTE YOUR KEYS HERE */ };
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let activeClient = null;
+        // 1. LOGIN LOGIC
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+            } catch (error) {
+                const errEl = document.getElementById('error-msg');
+                errEl.innerText = "Invalid Credentials";
+                errEl.classList.remove('hidden');
+            }
+        }
 
-        // REAL-TIME DATA SYNC
-        db.collection("accounts").onSnapshot(snap => {
-            const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            window.accounts = data;
-            renderAdmin();
-            renderClient();
+        // 2. AUTH STATE LISTENER (The most important part for privacy)
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in
+                document.getElementById('auth-gate').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                loadUserData(user.uid);
+            } else {
+                // No user is signed in
+                document.getElementById('auth-gate').classList.remove('hidden');
+                document.getElementById('main-app').classList.add('hidden');
+            }
         });
 
-        // 📝 CREATE ACCOUNT
-        async function createAccount() {
-            const name = document.getElementById('adm-name').value;
-            const otp = Math.floor(1000 + Math.random() * 9000).toString();
-            await db.collection("accounts").add({
-                name: name,
-                accNum: document.getElementById('adm-acc').value,
-                denom: parseFloat(document.getElementById('adm-denom').value),
-                totalYears: parseInt(document.getElementById('adm-years').value),
-                paidYears: 0,
-                otp: otp,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            alert(`Success! OTP for ${name} is ${otp}`);
+        async function handleLogout() {
+            await auth.signOut();
         }
 
-        // 📄 GENERATE PDF RECEIPT
-        function downloadReceipt(acc) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFont("helvetica", "bold");
-            doc.text("SECUREBANK INDIA - OFFICIAL RECEIPT", 20, 20);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Customer: ${acc.name}`, 20, 40);
-            doc.text(`Account: ${acc.accNum}`, 20, 50);
-            doc.text(`Amount Paid: ₹${acc.denom}`, 20, 60);
-            doc.text(`Status: Paid (${acc.paidYears}/${acc.totalYears} Years)`, 20, 70);
-            doc.text(`Date: ${new Date().toLocaleString()}`, 20, 80);
-            doc.save(`Receipt_${acc.accNum}.pdf`);
+        function loadUserData(uid) {
+            console.log("Loading private data for:", uid);
+            // Here you would fetch ONLY the data this user is allowed to see
         }
-
-        // 🏦 VIEW NAVIGATION
-        function switchView(v) {
-            document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`view-${v}`).classList.remove('hidden');
-        }
-
-        // Remaining logic for Scanner & Render...
     </script>
 </body>
 </html>
