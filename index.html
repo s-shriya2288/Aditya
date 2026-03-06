@@ -8,40 +8,44 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-        .hidden { display: none; }
-    </style>
 </head>
-<body>
+<body class="bg-slate-100 font-sans text-slate-900">
 
     <div id="view-auth" class="min-h-screen flex items-center justify-center p-6">
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-slate-200">
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-slate-200 text-center">
             <h2 id="auth-title" class="text-3xl font-black text-blue-900 mb-2 italic">SecureBank</h2>
-            <div class="space-y-4">
+            <div class="space-y-4 mt-6">
                 <input id="email" type="email" placeholder="Email" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
                 <input id="pass" type="password" placeholder="Password" class="w-full p-4 bg-slate-50 rounded-2xl border outline-none focus:ring-2 focus:ring-blue-500">
-                <button id="auth-btn" onclick="handleAuth()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold">Unlock System</button>
+                <button id="auth-btn" onclick="handleAuth()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-lg">Unlock System</button>
             </div>
-            <button onclick="toggleReg()" id="reg-toggle" class="w-full mt-6 text-xs font-bold text-blue-500 uppercase tracking-widest">Register New Admin</button>
+            <button onclick="toggleReg()" id="reg-toggle" class="w-full mt-6 text-xs font-bold text-blue-500 uppercase tracking-widest hover:underline">Register New Admin Account</button>
         </div>
     </div>
 
     <div id="main-app" class="hidden">
-        <nav class="bg-white p-5 shadow-sm flex justify-between items-center sticky top-0">
-            <h1 class="font-black text-blue-900 italic">SecureBank PRO</h1>
-            <button onclick="firebase.auth().signOut()" class="text-red-500 font-bold text-xs uppercase">Logout</button>
+        <nav class="bg-white p-5 shadow-sm flex justify-between items-center sticky top-0 z-50">
+            <h1 class="font-black text-blue-900 italic text-xl">SecureBank PRO</h1>
+            <button onclick="firebase.auth().signOut()" class="text-red-500 font-bold text-xs uppercase bg-red-50 px-4 py-2 rounded-full hover:bg-red-100">Logout</button>
         </nav>
 
         <div class="p-6 max-w-4xl mx-auto">
-            <input type="text" id="search" oninput="renderList()" placeholder="🔍 Search Shriya..." class="w-full p-5 rounded-3xl border shadow-sm mb-6 text-lg">
-            <div id="client-list" class="space-y-4"></div>
+            <div class="bg-white p-8 rounded-[2rem] shadow-xl mb-8 border border-slate-100">
+                <h3 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">New RD Entry</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input id="adm-name" placeholder="Client Name (e.g. Shriya)" class="p-4 bg-slate-50 rounded-2xl border outline-none">
+                    <button onclick="addClient()" class="bg-blue-600 text-white p-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700">Save to Cloud</button>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="text" id="search" oninput="renderList()" placeholder="🔍 Search clients..." class="w-full p-5 rounded-3xl border-none shadow-sm focus:ring-2 focus:ring-blue-500 text-lg outline-none">
+                <div id="list" class="space-y-4"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        // UPDATED WITH YOUR ACTUAL KEYS FROM SCREENSHOT 4
         const firebaseConfig = {
             apiKey: "AIzaSyCLZr_vHKRZw9mr27IFzkKvB6SD4Keksas",
             authDomain: "bank-d463e.firebaseapp.com",
@@ -55,22 +59,21 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let isReg = false;
-        let accounts = [
-            { name: "Shriya Shrivastav", amt: "1,00,000", acc: "SB-9921", otp: "1693" }
-        ];
+        let isRegMode = false;
+        let allClients = [];
 
         function toggleReg() {
-            isReg = !isReg;
-            document.getElementById('auth-title').innerText = isReg ? "Register Admin" : "SecureBank Login";
+            isRegMode = !isRegMode;
+            document.getElementById('auth-title').innerText = isRegMode ? "Admin Register" : "SecureBank";
+            document.getElementById('auth-btn').innerText = isRegMode ? "Create Admin" : "Unlock System";
         }
 
         async function handleAuth() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
             try {
-                if(isReg) await auth.createUserWithEmailAndPassword(e, p);
-                else await auth.signInWithEmailAndPassword(e, p);
+                if(isRegMode) await auth.createUserWithEmailAndPassword(email, pass);
+                else await auth.signInWithEmailAndPassword(email, pass);
             } catch (err) { alert(err.message); }
         }
 
@@ -78,20 +81,50 @@
             if(user) {
                 document.getElementById('view-auth').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
-                renderList();
+                db.collection('accounts').orderBy('dateCreated', 'desc').onSnapshot(snap => {
+                    allClients = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderList();
+                });
             } else {
                 document.getElementById('view-auth').classList.remove('hidden');
                 document.getElementById('main-app').classList.add('hidden');
             }
         });
 
+        async function addClient() {
+            const name = document.getElementById('adm-name').value;
+            if(!name) return alert("Enter name");
+            await db.collection('accounts').add({ 
+                name: name, 
+                balance: "1,00,000",
+                dateCreated: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            document.getElementById('adm-name').value = "";
+        }
+
+        // --- NEW DELETE FUNCTION ---
+        async function deleteClient(id, name) {
+            if(confirm(`Are you sure you want to delete ${name}?`)) {
+                await db.collection('accounts').doc(id).delete();
+            }
+        }
+
         function renderList() {
             const q = document.getElementById('search').value.toLowerCase();
-            const list = document.getElementById('client-list');
-            list.innerHTML = accounts.filter(a => a.name.toLowerCase().includes(q)).map(a => `
-                <div class="bg-white p-6 rounded-[2rem] shadow-sm flex justify-between border">
-                    <div><b>${a.name}</b><br><small class="text-slate-400 font-bold uppercase">Acc: ${a.acc} | OTP: ${a.otp}</small></div>
-                    <div class="text-blue-600 font-black text-2xl italic">₹${a.amt}</div>
+            const listEl = document.getElementById('list');
+            const filtered = allClients.filter(c => c.name.toLowerCase().includes(q));
+
+            listEl.innerHTML = filtered.map(c => `
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm flex justify-between items-center border border-slate-100">
+                    <div>
+                        <p class="font-black text-slate-800 text-lg uppercase">${c.name}</p>
+                        <p class="text-blue-600 font-bold">₹${c.balance}</p>
+                    </div>
+                    <button onclick="deleteClient('${c.id}', '${c.name}')" class="bg-red-50 p-3 rounded-full hover:bg-red-500 group transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
                 </div>
             `).join('');
         }
