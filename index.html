@@ -3,159 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank India | Pro RD Terminal</title>
+    <title>SecureBank India | Pro RD System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; margin: 0; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; }
         .hidden { display: none !important; }
         
-        /* Premium Layout Components */
+        /* UI Components */
         .glass-card { background: white; border-radius: 2.5rem; border: 1px solid #f1f5f9; box-shadow: 0 20px 50px rgba(0,0,0,0.02); }
         .passbook-card { 
             background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); 
             border-radius: 2rem; color: white; padding: 2.5rem; width: 100%; max-width: 450px; 
-            box-shadow: 0 30px 60px -12px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 30px 60px -12px rgba(37, 99, 235, 0.3); position: relative; overflow: hidden;
         }
         
-        /* Input Styling */
-        input { background: #f1f5f9; border-radius: 1rem; padding: 1rem; outline: none; width: 100%; font-weight: 600; border: 2px solid transparent; transition: 0.2s; font-size: 0.9rem; }
+        /* FIXED: Balance Overflow */
+        .balance-text { font-size: clamp(1.1rem, 7vw, 2.5rem); font-weight: 900; font-style: italic; word-break: break-all; line-height: 1.1; }
+
+        input { background: #f1f5f9; border-radius: 1rem; padding: 1.1rem; outline: none; width: 100%; font-weight: 600; border: 2px solid transparent; transition: 0.2s; }
         input:focus { border-color: #3b82f6; background: white; }
-        label { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; display: block; }
+        label { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.4rem; display: block; padding-left: 0.5rem; }
 
-        /* The "Dark Summary" Box from your screenshot */
-        .summary-dark { background: #0f172a; border-radius: 1.5rem; padding: 2rem; color: white; text-align: center; }
+        /* Dark Summary Box from your screenshot */
+        .summary-dark { background: #0f172a; border-radius: 1.5rem; padding: 1.8rem; color: white; text-align: center; }
 
-        .balance-text { font-size: clamp(1.2rem, 6vw, 2.5rem); font-weight: 900; font-style: italic; word-break: break-all; }
-        .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 0.8rem; font-size: 0.7rem; font-weight: 800; background: #f8fafc; border: 1px solid #f1f5f9; }
-        .cal-paid { background: #10b981; color: white; border: none; }
+        /* Calendar */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 0.8rem; font-size: 0.7rem; font-weight: 800; background: #f8fafc; border: 1px solid #f1f5f9; color: #cbd5e1; }
+        .cal-active { background: #10b981; color: white; border: none; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+
+        .btn-primary { background: #2563eb; color: white; font-weight: 800; padding: 1.2rem; border-radius: 1.2rem; width: 100%; transition: 0.3s; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4); }
+        .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.1); }
     </style>
 </head>
 <body>
 
-    <div id="view-hub" class="min-h-screen flex items-center justify-center p-6">
-        <div class="glass-card p-10 w-full max-w-[420px] text-center">
-            <h1 class="text-2xl font-black text-blue-900 italic mb-8 tracking-tighter">SecureBank India</h1>
-            <div class="space-y-3">
-                <button onclick="checkAuth('view-admin')" class="w-full bg-[#0f172a] text-white py-4 rounded-2xl font-bold">Banker Console</button>
-                <button onclick="checkAuth('view-worker')" class="w-full bg-emerald-700 text-white py-4 rounded-2xl font-bold">Worker Terminal</button>
-                <button onclick="nav('view-client-login')" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg">Client Passbook</button>
+    <div id="view-hub" class="min-h-screen flex items-center justify-center p-6 bg-slate-50">
+        <div class="glass-card p-12 w-full max-w-[440px] text-center">
+            <h1 class="text-3xl font-black text-blue-900 italic mb-10 tracking-tighter">SecureBank India</h1>
+            <div class="space-y-4">
+                <button onclick="checkAuth('view-admin')" class="w-full bg-[#0f172a] text-white py-5 rounded-2xl font-bold">Banker Console</button>
+                <button onclick="checkAuth('view-worker')" class="w-full bg-emerald-700 text-white py-5 rounded-2xl font-bold">Worker Terminal</button>
+                <button onclick="nav('view-client-login')" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold shadow-lg">Client Passbook</button>
             </div>
         </div>
     </div>
 
-    <div id="view-admin" class="hidden min-h-screen p-8">
-        <div class="max-w-[1300px] mx-auto">
+    <div id="view-auth" class="hidden min-h-screen flex items-center justify-center p-6 bg-slate-900/10 backdrop-blur-md">
+        <div class="glass-card p-10 w-full max-w-[360px] text-center">
+            <label class="text-center mb-4">Identity Verification</label>
+            <input id="auth-pin" type="password" placeholder="••••" class="text-center text-3xl tracking-[0.8em] mb-6">
+            <button onclick="verifyAccess()" class="btn-primary">Enter System</button>
+            <button onclick="nav('view-hub')" class="mt-6 text-[10px] font-bold text-slate-400 uppercase underline">Cancel</button>
+        </div>
+    </div>
+
+    <div id="view-admin" class="hidden min-h-screen p-6 lg:p-12">
+        <div class="max-w-[1400px] mx-auto">
             <div class="flex justify-between items-center mb-10">
-                <h1 class="text-2xl font-black italic text-slate-800">Banker Console</h1>
-                <button onclick="location.reload()" class="bg-slate-100 px-6 py-2 rounded-xl font-bold text-xs uppercase text-slate-500">Logout</button>
+                <h1 class="text-3xl font-black italic">Banker Console</h1>
+                <button onclick="location.reload()" class="bg-white px-6 py-2 rounded-xl font-bold text-xs text-slate-400 border">Logout</button>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                <div class="lg:col-span-4 glass-card p-8 space-y-4">
-                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">New RD Registration</p>
-                    <input id="r-acc" placeholder="Account Number (Private)">
+                <div class="lg:col-span-4 glass-card p-8 space-y-4 h-fit">
+                    <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">Registration Desk</p>
+                    <input id="r-acc" placeholder="Account Number">
                     <input id="r-name" placeholder="Full Name">
                     <input id="r-phone" placeholder="Phone (+91)">
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-2 gap-4">
                         <div><label>RD Denom (₹)</label><input id="r-denom" type="number" oninput="calcTotal()"></div>
-                        <div><label>Total Years</label><input id="r-years" type="number"></div>
+                        <div><label>Years</label><input id="r-years" type="number"></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-2 gap-4">
                         <div><label class="text-emerald-500">Rebate (₹)</label><input id="r-rebate" type="number" value="0" oninput="calcTotal()"></div>
                         <div><label class="text-red-500">Fine (₹)</label><input id="r-fine" type="number" value="0" oninput="calcTotal()"></div>
                     </div>
-                    
                     <div class="summary-dark my-6">
-                        <p class="text-[10px] font-bold opacity-60 uppercase mb-1">Total Collection</p>
+                        <p class="text-[10px] font-bold opacity-50 uppercase mb-1">Total Due Today</p>
                         <h2 id="r-display-total" class="text-4xl font-black italic">₹0</h2>
                     </div>
-
-                    <button id="reg-btn" onclick="createAccount()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition">Create RD & Send OTP</button>
+                    <button id="reg-btn" onclick="createAccount()" class="btn-primary">Confirm & Register</button>
                 </div>
 
-                <div class="lg:col-span-8 space-y-4" id="admin-ledger">
-                    </div>
+                <div class="lg:col-span-8 space-y-4">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Active Database</p>
+                    <div id="admin-ledger" class="space-y-4"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="view-worker" class="hidden min-h-screen flex flex-col items-center p-8 bg-[#f0fdf4]">
+    <div id="view-worker" class="hidden min-h-screen flex flex-col items-center justify-center p-6 bg-emerald-50">
         <div class="glass-card p-10 w-full max-w-[480px]">
-            <div id="w-search-box" class="space-y-4 text-center">
-                <h2 class="font-black text-emerald-900 uppercase text-xs tracking-widest mb-4">Collection Desk</h2>
-                <input id="w-phone" placeholder="Enter Phone Number" class="text-center text-lg">
-                <button onclick="workerSearch()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black">Find Account</button>
+            <div id="w-search-box" class="space-y-6 text-center">
+                <h2 class="font-black text-emerald-800 uppercase text-xs tracking-widest">Collection Desk</h2>
+                <input id="w-phone" placeholder="Enter Phone Number" class="text-center text-xl py-5">
+                <button onclick="workerSearch()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black">Search Member</button>
             </div>
+            
             <div id="w-details" class="hidden">
                 <h3 id="wv-name" class="text-2xl font-black text-center mb-6 uppercase italic">---</h3>
-                <div class="bg-slate-50 p-6 rounded-2xl mb-6 space-y-2">
-                    <div class="flex justify-between text-sm font-bold"><span>Denomination</span><span id="wv-denom">₹0</span></div>
-                    <div class="flex justify-between text-sm font-bold text-red-500"><span>Late Fine (+)</span><span id="wv-fine">₹0</span></div>
-                    <div class="flex justify-between text-sm font-bold text-emerald-600"><span>Rebate (-)</span><span id="wv-rebate">₹0</span></div>
-                    <div class="pt-4 border-t border-slate-200 flex justify-between font-black text-xl">
-                        <span>PAYABLE</span><span id="wv-total" class="text-blue-700">₹0</span>
+                <div class="bg-slate-50 p-6 rounded-3xl border space-y-3">
+                    <div class="flex justify-between text-xs font-bold"><span>Denom</span><span id="wv-denom">₹0</span></div>
+                    <div class="flex justify-between text-xs font-bold text-red-500"><span>Fine (+)</span><span id="wv-fine">₹0</span></div>
+                    <div class="flex justify-between text-xs font-bold text-emerald-600"><span>Rebate (-)</span><span id="wv-rebate">₹0</span></div>
+                    <div class="pt-4 border-t border-dashed flex justify-between items-center font-black">
+                        <span>PAYABLE</span><span id="wv-total" class="text-3xl text-blue-700">₹0</span>
                     </div>
                 </div>
-                <button onclick="confirmWorkerPayment()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black shadow-xl">Confirm & Deposit</button>
+                <button onclick="confirmWorkerPayment()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black mt-8">Confirm Deposit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-client-login" class="hidden min-h-screen flex items-center justify-center p-6">
+        <div class="glass-card p-12 w-full max-w-[420px] text-center">
+            <h2 class="text-2xl font-black mb-8 italic">Passbook Access</h2>
+            <div id="c-s1" class="space-y-4">
+                <input id="c-phone-login" placeholder="Registered Phone" class="text-center">
+                <button onclick="sendOTP()" class="btn-primary">Request Login OTP</button>
+            </div>
+            <div id="c-s2" class="hidden space-y-6">
+                <input id="c-otp" maxlength="4" placeholder="••••" class="text-center text-5xl font-black tracking-widest text-blue-600 bg-blue-50">
+                <button onclick="validateOTP()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black">Verify OTP</button>
             </div>
         </div>
     </div>
 
     <div id="view-passbook" class="hidden min-h-screen flex flex-col items-center p-8 pb-20">
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-8">Secure Ledger</p>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-10 italic">Secure Digital Ledger</p>
+        
         <div class="passbook-card mb-8">
-            <p id="p-name" class="text-lg font-bold mb-1 uppercase opacity-80">---</p>
+            <p id="p-name" class="text-lg font-bold mb-1 uppercase opacity-70">---</p>
             <h1 id="p-balance" class="balance-text">₹0</h1>
-            <div class="flex justify-between border-t border-white/10 pt-4 text-[9px] font-black opacity-40 mt-6">
+            <div class="flex justify-between border-t border-white/10 pt-5 text-[9px] font-black opacity-40 mt-8">
                 <span id="p-acc">ACC: ****</span>
-                <span>V 3.0 PRO</span>
+                <span>AUTHENTICATED</span>
             </div>
         </div>
-        <div class="w-full max-w-[450px] space-y-4">
+
+        <div class="w-full max-w-[480px] space-y-4">
             <div class="grid grid-cols-2 gap-4">
-                <div class="glass-card p-6 text-center">
-                    <label>Monthly Denom</label>
-                    <p id="p-denom" class="text-xl font-black text-slate-800">₹0</p>
-                </div>
-                <div class="glass-card p-6 text-center">
-                    <label>Months Paid</label>
-                    <p id="p-paid" class="text-xl font-black text-slate-800">0/0</p>
-                </div>
+                <div class="glass-card p-6 text-center"><label>Denom</label><p id="p-denom" class="text-2xl font-black text-slate-800">₹0</p></div>
+                <div class="glass-card p-6 text-center"><label>Paid Months</label><p id="p-paid" class="text-2xl font-black text-slate-800">0/0</p></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-card p-6 text-center border-l-4 border-emerald-500"><label>Applied Rebate</label><p id="p-rebate" class="text-xl font-black text-emerald-700">₹0</p></div>
+                <div class="glass-card p-6 text-center border-l-4 border-red-500"><label>Applied Fine</label><p id="p-fine" class="text-xl font-black text-red-700">₹0</p></div>
             </div>
             <div class="glass-card p-8">
-                <p class="text-center font-black text-blue-900 mb-6 uppercase text-[10px] tracking-widest">Submission Calendar</p>
-                <div id="calendar-view" class="grid grid-cols-7 gap-2"></div>
+                <p class="text-center font-black text-blue-900 mb-6 uppercase text-[10px] tracking-widest">Deposit Schedule</p>
+                <div id="calendar-view" class="cal-grid"></div>
             </div>
         </div>
-        <button onclick="location.reload()" class="mt-10 text-slate-300 font-bold uppercase text-[9px] tracking-widest">Secure Logout</button>
-    </div>
-
-    <div id="view-auth" class="hidden min-h-screen flex items-center justify-center p-6 bg-slate-900/5 backdrop-blur-sm">
-        <div class="glass-card p-10 w-full max-w-[360px] text-center">
-            <input id="auth-pin" type="password" placeholder="ENTER PIN" class="text-center text-2xl tracking-[0.5em] mb-6">
-            <button onclick="verifyAccess()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black">Login</button>
-        </div>
-    </div>
-
-    <div id="view-client-login" class="hidden min-h-screen flex items-center justify-center p-6">
-        <div class="glass-card p-10 w-full max-w-[400px] text-center">
-            <h2 class="text-xl font-black mb-6 italic">Client Login</h2>
-            <div id="c-s1" class="space-y-4">
-                <input id="c-phone-login" placeholder="Phone Number" class="text-center">
-                <button onclick="sendOTP()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black">Send OTP</button>
-            </div>
-            <div id="c-s2" class="hidden space-y-6">
-                <input id="c-otp" maxlength="4" placeholder="0000" class="text-center text-4xl font-black tracking-widest">
-                <button onclick="validateOTP()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black">Verify</button>
-            </div>
-        </div>
+        <button onclick="location.reload()" class="mt-12 text-slate-300 font-bold uppercase text-[9px] tracking-widest">Logout</button>
     </div>
 
     <script>
-        // --- FIREBASE INITIALIZATION ---
+        // --- FIREBASE CORE ---
         const firebaseConfig = {
             apiKey: "AIzaSyCLZr_vHKRZw9mr27IFzkKvB6SD4Keksas",
             authDomain: "bank-d463e.firebaseapp.com",
@@ -166,38 +175,41 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let pendingNavId = null;
-        let activeUserDocId = null;
-        let activeUserData = null;
-        let currentOTP = null;
-        let editModeId = null; // Track if we are editing
+        let pendingNavId, activeUserDocId, activeUserData, currentOTP, editModeId = null;
         const MASTER_PIN = "1234";
 
+        // --- AUTH & NAV ---
         function checkAuth(id) { pendingNavId = id; nav('view-auth'); }
-        function verifyAccess() { if(document.getElementById('auth-pin').value === MASTER_PIN) { nav(pendingNavId); } else { alert("Wrong PIN"); } }
-        function nav(id) { document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id === 'view-admin') loadLedger(); }
+        function verifyAccess() {
+            if(document.getElementById('auth-pin').value === MASTER_PIN) {
+                nav(pendingNavId); document.getElementById('auth-pin').value = '';
+            } else { alert("Wrong PIN"); }
+        }
+        function nav(id) {
+            document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'view-admin') loadLedger();
+        }
 
-        // --- MATH FOR REGISTRATION ---
+        // --- BANKER LOGIC ---
         function calcTotal() {
             const d = parseFloat(document.getElementById('r-denom').value) || 0;
             const r = parseFloat(document.getElementById('r-rebate').value) || 0;
             const f = parseFloat(document.getElementById('r-fine').value) || 0;
-            document.getElementById('r-display-total').innerText = "₹" + (d + f - r).toLocaleString();
+            document.getElementById('r-display-total').innerText = "₹" + (d + f - r).toLocaleString('en-IN');
         }
 
-        // --- CREATE / EDIT ACCOUNT ---
         async function createAccount() {
-            const btn = document.getElementById('reg-btn');
             const data = {
                 acc: document.getElementById('r-acc').value,
                 name: document.getElementById('r-name').value.toUpperCase(),
                 phone: document.getElementById('r-phone').value,
-                denom: parseFloat(document.getElementById('r-denom').value),
-                years: document.getElementById('r-years').value,
+                denom: parseFloat(document.getElementById('r-denom').value) || 0,
+                years: document.getElementById('r-years').value || 1,
                 rebate: parseFloat(document.getElementById('r-rebate').value) || 0,
                 fine: parseFloat(document.getElementById('r-fine').value) || 0,
-                sub_date: "07/03/2026", // Current Date
-                balance: parseFloat(document.getElementById('r-denom').value),
+                sub_date: "07/03/2026",
+                balance: parseFloat(document.getElementById('r-denom').value) || 0,
                 paid_count: 1,
                 otp: "0000",
                 created_at: new Date()
@@ -205,71 +217,53 @@
 
             if(editModeId) {
                 await db.collection('accounts').doc(editModeId).update(data);
-                alert("Account Updated!");
                 editModeId = null;
-                btn.innerText = "Create RD & Send OTP";
+                document.getElementById('reg-btn').innerText = "Confirm & Register";
             } else {
                 await db.collection('accounts').add(data);
-                alert("Account Registered!");
             }
-            clearFields();
-            loadLedger();
+            clearForm();
         }
 
-        // --- EDIT ACCOUNT ---
-        function editAccount(id, data) {
+        function editAccount(id, d) {
             editModeId = id;
-            document.getElementById('r-acc').value = data.acc;
-            document.getElementById('r-name').value = data.name;
-            document.getElementById('r-phone').value = data.phone;
-            document.getElementById('r-denom').value = data.denom;
-            document.getElementById('r-years').value = data.years;
-            document.getElementById('r-rebate').value = data.rebate;
-            document.getElementById('r-fine').value = data.fine;
-            document.getElementById('reg-btn').innerText = "Update Account Information";
+            document.getElementById('r-acc').value = d.acc;
+            document.getElementById('r-name').value = d.name;
+            document.getElementById('r-phone').value = d.phone;
+            document.getElementById('r-denom').value = d.denom;
+            document.getElementById('r-years').value = d.years;
+            document.getElementById('r-rebate').value = d.rebate;
+            document.getElementById('r-fine').value = d.fine;
+            document.getElementById('reg-btn').innerText = "Update Member Info";
             calcTotal();
-            window.scrollTo(0, 0);
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        // --- DELETE ACCOUNT ---
         async function deleteAccount(id) {
-            if(confirm("Are you sure you want to PERMANENTLY DELETE this account? This cannot be undone.")) {
-                await db.collection('accounts').doc(id).delete();
-                alert("Account Deleted.");
-            }
+            if(confirm("Delete this account permanently?")) await db.collection('accounts').doc(id).delete();
         }
 
-        function clearFields() {
-            ['r-acc','r-name','r-phone','r-denom','r-years','r-rebate','r-fine'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('r-display-total').innerText = "₹0";
+        function clearForm() {
+            ['r-acc','r-name','r-phone','r-denom','r-years','r-rebate','r-fine'].forEach(i => document.getElementById(i).value = '');
+            calcTotal();
         }
 
-        // --- LOAD LEDGER WITH ACTIONS ---
         function loadLedger() {
             db.collection('accounts').orderBy('created_at', 'desc').onSnapshot(snap => {
-                const list = document.getElementById('admin-ledger'); 
-                list.innerHTML = '';
+                const list = document.getElementById('admin-ledger'); list.innerHTML = '';
                 snap.forEach(doc => {
-                    const d = doc.data();
-                    const id = doc.id;
+                    const d = doc.data(); const id = doc.id;
                     list.innerHTML += `
-                        <div class="glass-card p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                            <div class="text-center md:text-left">
-                                <h4 class="font-black text-blue-900 uppercase">${d.name}</h4>
-                                <p class="text-[10px] font-bold text-slate-400">ACC: ${d.acc} | PHONE: ${d.phone}</p>
-                            </div>
+                        <div class="glass-card p-6 flex justify-between items-center">
+                            <div><h4 class="font-black">${d.name}</h4><p class="text-[10px] text-slate-400">ACC: ${d.acc}</p></div>
                             <div class="flex items-center gap-6">
                                 <div class="text-right">
-                                    <p class="text-xl font-black text-blue-600">₹${d.balance.toLocaleString()}</p>
-                                    <p class="text-[9px] font-bold text-slate-300 uppercase">${d.paid_count}/${parseInt(d.years)*12} Months</p>
+                                    <p class="text-xl font-black text-blue-600">₹${d.balance.toLocaleString('en-IN')}</p>
+                                    <p class="text-[9px] font-bold text-slate-300 uppercase">${d.paid_count}/${parseInt(d.years)*12} MO</p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick='editAccount("${id}", ${JSON.stringify(d)})' class="bg-slate-100 p-2 rounded-lg hover:bg-blue-50 text-blue-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                    </button>
-                                    <button onclick="deleteAccount('${id}')" class="bg-slate-100 p-2 rounded-lg hover:bg-red-50 text-red-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    </button>
+                                    <button onclick='editAccount("${id}", ${JSON.stringify(d)})' class="p-2 bg-slate-50 rounded-lg text-blue-500 hover:bg-blue-600 hover:text-white transition">✎</button>
+                                    <button onclick="deleteAccount('${id}')" class="p-2 bg-slate-50 rounded-lg text-red-500 hover:bg-red-600 hover:text-white transition">✕</button>
                                 </div>
                             </div>
                         </div>`;
@@ -277,13 +271,12 @@
             });
         }
 
-        // (Worker & Client Functions remain identical to previous versions for reliability)
+        // --- WORKER LOGIC ---
         async function workerSearch() {
             const phone = document.getElementById('w-phone').value;
             const snap = await db.collection('accounts').where('phone', '==', phone).get();
             if(!snap.empty) {
-                activeUserData = snap.docs[0].data();
-                activeUserDocId = snap.docs[0].id;
+                activeUserData = snap.docs[0].data(); activeUserDocId = snap.docs[0].id;
                 document.getElementById('w-search-box').classList.add('hidden');
                 document.getElementById('w-details').classList.remove('hidden');
                 document.getElementById('wv-name').innerText = activeUserData.name;
@@ -291,8 +284,8 @@
                 document.getElementById('wv-fine').innerText = "₹" + activeUserData.fine;
                 document.getElementById('wv-rebate').innerText = "₹" + activeUserData.rebate;
                 window.workerTotal = activeUserData.denom + activeUserData.fine - activeUserData.rebate;
-                document.getElementById('wv-total').innerText = "₹" + window.workerTotal.toLocaleString();
-            } else { alert("Not Found"); }
+                document.getElementById('wv-total').innerText = "₹" + window.workerTotal.toLocaleString('en-IN');
+            } else { alert("Member Not Found"); }
         }
 
         async function confirmWorkerPayment() {
@@ -300,10 +293,10 @@
                 balance: firebase.firestore.FieldValue.increment(window.workerTotal),
                 paid_count: firebase.firestore.FieldValue.increment(1)
             });
-            alert("Payment Verified!");
-            location.reload();
+            alert("Deposit Successful!"); location.reload();
         }
 
+        // --- CLIENT LOGIC ---
         async function sendOTP() {
             const phone = document.getElementById('c-phone-login').value;
             const snap = await db.collection('accounts').where('phone', '==', phone).get();
@@ -311,28 +304,33 @@
                 activeUserDocId = snap.docs[0].id;
                 currentOTP = Math.floor(1000 + Math.random() * 9000).toString();
                 await db.collection('accounts').doc(activeUserDocId).update({ otp: currentOTP });
-                alert("SECURE OTP: " + currentOTP);
+                alert("SECURE ACCESS OTP: " + currentOTP);
                 document.getElementById('c-s1').classList.add('hidden');
                 document.getElementById('c-s2').classList.remove('hidden');
-            } else { alert("Account not found"); }
+            } else { alert("Account Not Linked"); }
         }
 
         async function validateOTP() {
             if(document.getElementById('c-otp').value === currentOTP) {
                 const doc = await db.collection('accounts').doc(activeUserDocId).get();
-                activeUserData = doc.data();
-                renderPassbook();
+                activeUserData = doc.data(); renderPassbook();
             } else { alert("Invalid OTP"); }
         }
 
         function renderPassbook() {
             document.getElementById('p-name').innerText = activeUserData.name;
             document.getElementById('p-balance').innerText = "₹" + activeUserData.balance.toLocaleString('en-IN');
-            document.getElementById('p-denom').innerText = "₹" + activeUserData.denom;
+            document.getElementById('p-denom').innerText = "₹" + activeUserData.denom.toLocaleString();
+            document.getElementById('p-rebate').innerText = "₹" + activeUserData.rebate;
+            document.getElementById('p-fine').innerText = "₹" + activeUserData.fine;
             document.getElementById('p-acc').innerText = "ACC: ****" + activeUserData.acc.slice(-4);
             document.getElementById('p-paid').innerText = `${activeUserData.paid_count} / ${parseInt(activeUserData.years) * 12}`;
+            
             const cal = document.getElementById('calendar-view'); cal.innerHTML = '';
-            for(let i=1; i<=31; i++) cal.innerHTML += `<div class="cal-day ${i===7?'cal-paid':''}">${i}</div>`;
+            const day = 7; // Highlighted date
+            for(let i=1; i<=31; i++) {
+                cal.innerHTML += `<div class="cal-day ${i===day?'cal-active':''}">${i}</div>`;
+            }
             nav('view-passbook');
         }
     </script>
