@@ -3,115 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank India | Pro RD Terminal</title>
+    <title>SecureBank India | Worker & Calendar Build</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; margin: 0; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .hidden { display: none !important; }
-        .centered-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; width: 100vw; padding: 20px; background: #f8fafc; }
-        
-        /* The Premium Card from your Screenshot */
         .passbook-card { 
             background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); 
-            border-radius: 2.5rem; color: white; padding: 3rem; width: 100%; max-width: 500px; 
-            box-shadow: 0 25px 50px -12px rgba(37, 99, 235, 0.4); position: relative; overflow: hidden;
+            border-radius: 2.5rem; color: white; padding: 2.5rem; width: 100%; max-width: 450px; 
+            box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.3);
         }
-        
-        input { background: #f1f5f9; border-radius: 1.2rem; padding: 1.25rem; outline: none; width: 100%; font-weight: 700; border: 2px solid transparent; transition: 0.2s; color: #1e293b; }
-        input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-        
-        .btn-primary { background: #3b82f6; color: white; padding: 1.25rem; border-radius: 1.2rem; font-weight: 800; width: 100%; transition: 0.3s; box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4); }
-        .btn-primary:active { transform: scale(0.98); }
+        input { background: #f1f5f9; border-radius: 1rem; padding: 1rem; outline: none; width: 100%; font-weight: 700; border: 2px solid transparent; }
+        input:focus { border-color: #3b82f6; background: white; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 0.75rem; font-weight: 800; border: 1px solid #f1f5f9; }
+        .day-paid { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
     </style>
 </head>
 <body>
 
-    <div id="view-hub" class="centered-screen">
-        <div class="bg-white p-12 rounded-[3.5rem] shadow-2xl w-full max-w-[450px] text-center border border-slate-100">
-            <h1 class="text-3xl font-black text-[#1e3a8a] italic mb-1 tracking-tighter">SecureBank India</h1>
-            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-[0.4em] mb-12">Terminal Select</p>
+    <div id="view-hub" class="min-h-screen flex items-center justify-center p-6">
+        <div class="bg-white p-10 rounded-[3rem] shadow-xl w-full max-w-[400px] text-center">
+            <h1 class="text-2xl font-black text-blue-900 italic mb-10">SecureBank Terminal</h1>
             <div class="space-y-4">
-                <button onclick="nav('view-admin')" class="w-full bg-[#0f172a] text-white py-6 rounded-3xl font-bold text-lg">Admin Console</button>
-                <button onclick="nav('view-worker')" class="w-full bg-[#3d7a5d] text-white py-6 rounded-3xl font-bold text-lg">Worker Terminal</button>
-                <button onclick="nav('view-client-login')" class="w-full bg-blue-600 text-white py-6 rounded-3xl font-bold text-lg shadow-lg">Client Passbook</button>
+                <button onclick="nav('view-admin')" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold">Admin Console</button>
+                <button onclick="nav('view-worker')" class="w-full bg-emerald-700 text-white py-5 rounded-2xl font-bold">Worker Verification</button>
+                <button onclick="nav('view-client-login')" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold">Client Passbook</button>
             </div>
         </div>
     </div>
 
-    <div id="view-client-login" class="hidden centered-screen">
-        <div class="bg-white p-12 rounded-[3.5rem] shadow-2xl w-full max-w-[450px] text-center border border-slate-100">
-            <h1 class="text-2xl font-black text-[#1e3a8a] italic mb-8">Client Login</h1>
-            
-            <div id="c-login-s1" class="space-y-4">
-                <input id="c-phone" type="tel" placeholder="Enter Phone Number" class="text-center text-lg">
-                <button id="send-otp-btn" onclick="sendOTP()" class="btn-primary">Send OTP</button>
-            </div>
-
-            <div id="c-login-s2" class="hidden space-y-6">
-                <div class="space-y-2">
-                    <p class="text-xs font-bold text-emerald-600 animate-pulse uppercase tracking-widest">OTP Sent Successfully</p>
-                    <input id="c-otp" type="text" maxlength="4" placeholder="0 0 0 0" class="text-center text-4xl font-black tracking-[1rem] py-6">
-                </div>
-                <button onclick="validateOTP()" class="w-full bg-slate-900 text-white py-6 rounded-3xl font-black text-lg">Verify & Access</button>
-                <button onclick="location.reload()" class="text-[10px] font-bold text-slate-300 uppercase">Back</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="view-passbook" class="hidden min-h-screen flex flex-col items-center p-8 bg-white">
-        <h2 class="text-slate-800 font-black italic text-2xl mb-10 uppercase tracking-tighter">My Secure Passbook</h2>
-        
-        <div class="passbook-card mb-12">
-            <p id="p-name" class="text-2xl font-bold mb-1 uppercase tracking-tight">---</p>
-            <h1 id="p-balance" class="text-6xl font-black italic mb-10 tracking-tighter">₹0</h1>
-            <div class="flex justify-between border-t border-white/20 pt-8">
-                <p class="text-xs font-bold opacity-60 uppercase">Encrypted Session</p>
-                <p id="p-acc" class="text-xs font-bold opacity-60 uppercase">ACC: ****</p>
-            </div>
-        </div>
-
-        <div class="w-full max-w-[500px] grid grid-cols-2 gap-4">
-            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                <p class="text-[10px] font-bold text-slate-400 uppercase">Monthly Denom</p>
-                <p id="p-denom" class="text-xl font-black text-slate-800">₹0</p>
-            </div>
-            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                <p class="text-[10px] font-bold text-slate-400 uppercase">Paid Count</p>
-                <p id="p-paid" class="text-xl font-black text-slate-800">0/0</p>
-            </div>
-        </div>
-        
-        <button onclick="location.reload()" class="mt-16 text-slate-300 font-bold uppercase text-[10px] tracking-[0.3em]">Logout Securely</button>
-    </div>
-
-    <div id="view-admin" class="hidden min-h-screen p-8 lg:p-12">
-        <div class="max-w-[1400px] mx-auto">
-            <div class="flex justify-between items-center mb-10">
-                <h1 class="text-3xl font-black italic">Banker Console</h1>
-                <button onclick="location.reload()" class="bg-slate-200 px-6 py-2 rounded-xl font-bold text-xs">EXIT</button>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                <div class="lg:col-span-4 bg-white p-10 rounded-[3.5rem] shadow-sm">
-                    <p class="text-[10px] font-black text-slate-300 uppercase mb-8">New RD Registration</p>
-                    <div class="space-y-4">
+    <div id="view-admin" class="hidden p-8">
+        <div class="max-w-[1000px] mx-auto">
+            <button onclick="nav('view-hub')" class="mb-6 text-slate-400 font-bold text-xs">← BACK</button>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm">
+                    <h2 class="font-black mb-6 uppercase text-sm tracking-widest text-slate-400">New Registration</h2>
+                    <div class="space-y-3">
                         <input id="r-acc" placeholder="Account Number">
                         <input id="r-name" placeholder="Full Name">
                         <input id="r-phone" placeholder="Phone Number">
-                        <input id="r-denom" type="number" placeholder="Monthly Denom">
-                        <input id="r-years" type="number" placeholder="Total Years">
-                        <button onclick="createAccount()" class="w-full bg-blue-600 text-white py-6 rounded-3xl font-black">Register & Generate OTP</button>
+                        <div class="flex gap-2">
+                            <input id="r-denom" type="number" placeholder="Denom (₹)">
+                            <input id="r-rebate" type="number" placeholder="Rebate (₹)">
+                        </div>
+                        <input id="r-fine" type="number" placeholder="Fine (₹)">
+                        <div class="p-4 bg-blue-50 rounded-2xl">
+                            <label class="text-[10px] font-bold text-blue-400 block mb-1">DEPOSIT DATE</label>
+                            <input id="r-date" type="date" class="!bg-transparent !p-0">
+                        </div>
+                        <button onclick="createRD()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black mt-4">Save & Generate OTP</button>
                     </div>
                 </div>
-                <div id="admin-ledger" class="lg:col-span-8 space-y-4"></div>
+                <div id="admin-ledger" class="space-y-4"></div>
             </div>
         </div>
     </div>
 
+    <div id="view-worker" class="hidden min-h-screen flex flex-col items-center p-8 bg-[#f0fdf4]">
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-lg w-full max-w-[450px]">
+            <h2 class="text-center font-black text-emerald-900 mb-8">PAYMENT VERIFICATION</h2>
+            <div id="w-search" class="space-y-4">
+                <input id="w-phone" placeholder="Enter Client Phone" class="text-center">
+                <button onclick="workerSearch()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold">Search Client</button>
+            </div>
+            
+            <div id="w-results" class="hidden mt-8 space-y-4">
+                <div class="border-t pt-6">
+                    <p id="wv-name" class="text-2xl font-black text-slate-800">---</p>
+                    <p class="text-xs font-bold text-slate-400 mb-4">VERIFIED ACCOUNT</p>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] font-bold text-slate-400">DENOM</p>
+                            <p id="wv-denom" class="font-black">₹0</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-2xl">
+                            <p class="text-[10px] font-bold text-red-400">FINE (+)</p>
+                            <p id="wv-fine" class="font-black text-red-600">₹0</p>
+                        </div>
+                        <div class="p-4 bg-emerald-50 rounded-2xl">
+                            <p class="text-[10px] font-bold text-emerald-400">REBATE (-)</p>
+                            <p id="wv-rebate" class="font-black text-emerald-600">₹0</p>
+                        </div>
+                        <div class="p-4 bg-blue-900 text-white rounded-2xl">
+                            <p class="text-[10px] font-bold opacity-50">TOTAL DUE</p>
+                            <p id="wv-total" class="font-black text-lg">₹0</p>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="confirmWorkerPayment()" class="w-full bg-emerald-600 text-white py-5 rounded-3xl font-black shadow-lg">Confirm Collection</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-client-login" class="hidden min-h-screen flex items-center justify-center">
+        <div class="bg-white p-10 rounded-[3rem] shadow-xl w-full max-w-[400px] text-center">
+            <h2 class="font-black text-blue-900 mb-6">Client Login</h2>
+            <input id="c-phone" placeholder="Phone Number" class="text-center mb-4">
+            <button onclick="clientLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold">Access Passbook</button>
+        </div>
+    </div>
+
+    <div id="view-passbook" class="hidden min-h-screen flex flex-col items-center p-6 bg-white">
+        <div class="passbook-card mb-8">
+            <p id="p-name" class="text-xl font-bold mb-1">---</p>
+            <h1 id="p-balance" class="text-5xl font-black italic mb-8">₹0</h1>
+            <div class="flex justify-between border-t border-white/20 pt-6">
+                <p class="text-[10px] font-bold opacity-50">SECURE SESSION</p>
+                <p class="text-[10px] font-bold opacity-50">ID: ACTIVE</p>
+            </div>
+        </div>
+
+        <div class="w-full max-w-[450px]">
+            <h3 class="font-black text-xs text-slate-400 mb-4 uppercase tracking-widest">Payment Calendar</h3>
+            <div class="bg-slate-50 p-6 rounded-[2.5rem] mb-10">
+                <div class="calendar-grid" id="calendar-view">
+                    </div>
+                <p class="text-[10px] font-bold text-center mt-6 text-emerald-600 uppercase">Green indicates successful submission</p>
+            </div>
+        </div>
+        <button onclick="location.reload()" class="text-slate-300 font-bold text-[10px] uppercase">Logout</button>
+    </div>
+
     <script>
-        // --- 1. FIREBASE INITIALIZATION ---
+        // FIREBASE SETUP
         const firebaseConfig = {
             apiKey: "AIzaSyCLZr_vHKRZw9mr27IFzkKvB6SD4Keksas",
             authDomain: "bank-d463e.firebaseapp.com",
@@ -122,8 +141,8 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let generatedOTP = null;
-        let activeUserData = null;
+        let activeDocId = null;
+        let activeData = null;
 
         function nav(id) {
             document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
@@ -131,75 +150,22 @@
             if(id === 'view-admin') loadLedger();
         }
 
-        // --- 2. OTP SYSTEM (THE FIX) ---
-        async function sendOTP() {
-            const btn = document.getElementById('send-otp-btn');
-            const phoneInput = document.getElementById('c-phone').value.trim();
-            
-            if(!phoneInput) { alert("Please enter a phone number"); return; }
-            
-            btn.innerText = "Searching...";
-            btn.disabled = true;
-
-            try {
-                // We search by phone string. Ensure you registered the user with this exact phone!
-                const snap = await db.collection('accounts').where('phone', '==', phoneInput).get();
-                
-                if(!snap.empty) {
-                    activeUserData = snap.docs[0].data();
-                    generatedOTP = activeUserData.otp.toString();
-                    
-                    // SIMULATED SMS: In a real app, this triggers your API.
-                    alert("DEMO OTP FOR " + activeUserData.name + ": " + generatedOTP);
-                    
-                    document.getElementById('c-login-s1').classList.add('hidden');
-                    document.getElementById('c-login-s2').classList.remove('hidden');
-                } else {
-                    alert("No account found for " + phoneInput + ". Please register first in the Admin Console.");
-                    btn.innerText = "Send OTP";
-                    btn.disabled = false;
-                }
-            } catch (error) {
-                console.error(error);
-                alert("Firebase Error: " + error.message);
-                btn.disabled = false;
-            }
-        }
-
-        function validateOTP() {
-            const entered = document.getElementById('c-otp').value;
-            if(entered === generatedOTP) {
-                renderPassbook();
-                nav('view-passbook');
-            } else {
-                alert("Incorrect OTP code.");
-            }
-        }
-
-        function renderPassbook() {
-            document.getElementById('p-name').innerText = activeUserData.name;
-            document.getElementById('p-balance').innerText = "₹" + activeUserData.balance.toLocaleString();
-            document.getElementById('p-acc').innerText = "ACC: ****" + activeUserData.acc.slice(-4);
-            document.getElementById('p-denom').innerText = "₹" + activeUserData.denom;
-            document.getElementById('p-paid').innerText = activeUserData.paid_count + "/" + (parseInt(activeUserData.years) * 12);
-        }
-
-        // --- 3. ADMIN LOGIC ---
-        async function createAccount() {
-            const otp = Math.floor(1000 + Math.random() * 9000);
-            const d = {
+        // ADMIN CREATE
+        async function createRD() {
+            const data = {
                 acc: document.getElementById('r-acc').value,
                 name: document.getElementById('r-name').value.toUpperCase(),
-                phone: document.getElementById('r-phone').value.trim(),
+                phone: document.getElementById('r-phone').value,
                 denom: parseFloat(document.getElementById('r-denom').value),
+                rebate: parseFloat(document.getElementById('r-rebate').value) || 0,
+                fine: parseFloat(document.getElementById('r-fine').value) || 0,
+                submissionDate: document.getElementById('r-date').value, // CALENDAR DATE
                 balance: parseFloat(document.getElementById('r-denom').value),
-                years: document.getElementById('r-years').value,
-                otp: otp,
                 paid_count: 1,
                 created_at: new Date()
             };
-            await db.collection('accounts').add(d);
-            alert("Registered! Phone: " + d.phone + " | OTP: " + otp);
+            await db.collection('accounts').add(data);
+            alert("RD Registered Successfully!");
             loadLedger();
         }
 
@@ -208,13 +174,72 @@
                 const list = document.getElementById('admin-ledger');
                 list.innerHTML = '';
                 snap.forEach(doc => {
-                    const data = doc.data();
-                    list.innerHTML += `<div class="bg-white p-6 rounded-3xl flex justify-between items-center shadow-sm">
-                        <div><h4 class="font-bold uppercase">${data.name}</h4><p class="text-[10px] text-slate-400 font-bold">ACC: ${data.acc} | PHONE: ${data.phone}</p></div>
-                        <div class="text-right"><h2 class="text-xl font-black text-blue-600">₹${data.balance.toLocaleString()}</h2><p class="text-[9px] font-bold text-blue-300 uppercase">OTP: ${data.otp}</p></div>
+                    const d = doc.data();
+                    list.innerHTML += `<div class="bg-white p-6 rounded-3xl shadow-sm flex justify-between">
+                        <div><p class="font-black">${d.name}</p><p class="text-[10px] text-slate-400 font-bold">${d.phone}</p></div>
+                        <p class="font-black text-blue-600">₹${d.balance}</p>
                     </div>`;
                 });
             });
+        }
+
+        // WORKER SEARCH
+        async function workerSearch() {
+            const phone = document.getElementById('w-phone').value;
+            const snap = await db.collection('accounts').where('phone', '==', phone).get();
+            if(!snap.empty) {
+                activeDocId = snap.docs[0].id;
+                const d = snap.docs[0].data();
+                document.getElementById('w-results').classList.remove('hidden');
+                document.getElementById('wv-name').innerText = d.name;
+                document.getElementById('wv-denom').innerText = "₹" + d.denom;
+                document.getElementById('wv-fine').innerText = "₹" + d.fine;
+                document.getElementById('wv-rebate').innerText = "₹" + d.rebate;
+                const total = (d.denom + d.fine) - d.rebate;
+                document.getElementById('wv-total').innerText = "₹" + total;
+                window.currentTotal = total;
+            } else { alert("Client not found!"); }
+        }
+
+        async function confirmWorkerPayment() {
+            await db.collection('accounts').doc(activeDocId).update({
+                balance: firebase.firestore.FieldValue.increment(window.currentTotal),
+                paid_count: firebase.firestore.FieldValue.increment(1)
+            });
+            alert("Payment Verified & Added to Ledger!");
+            location.reload();
+        }
+
+        // CLIENT CALENDAR LOGIC
+        async function clientLogin() {
+            const phone = document.getElementById('c-phone').value;
+            const snap = await db.collection('accounts').where('phone', '==', phone).get();
+            if(!snap.empty) {
+                activeData = snap.docs[0].data();
+                renderPassbook();
+                nav('view-passbook');
+            } else { alert("Login failed"); }
+        }
+
+        function renderPassbook() {
+            document.getElementById('p-name').innerText = activeData.name;
+            document.getElementById('p-balance').innerText = "₹" + activeData.balance.toLocaleString();
+            
+            const calendar = document.getElementById('calendar-view');
+            calendar.innerHTML = '';
+            
+            // Extract the day from the submission date (e.g., "2026-03-07" -> 7)
+            const subDate = new Date(activeData.submissionDate);
+            const subDay = subDate.getDate();
+
+            for(let i=1; i<=31; i++) {
+                const isPaidDay = (i === subDay);
+                calendar.innerHTML += `
+                    <div class="calendar-day ${isPaidDay ? 'day-paid' : ''}">
+                        ${i}
+                    </div>
+                `;
+            }
         }
     </script>
 </body>
