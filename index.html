@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureBank India | Unified Terminal</title>
+    <title>SecureBank India | Final Master Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -27,7 +27,7 @@
 </head>
 <body>
 
-    <div id="view-hub" class="min-h-screen flex items-center justify-center p-6">
+    <div id="view-hub" class="min-h-screen flex items-center justify-center p-6 bg-slate-50">
         <div class="glass-card p-12 w-full max-w-[440px] text-center">
             <h1 class="text-3xl font-black text-blue-900 italic mb-10 tracking-tighter">SecureBank India</h1>
             <div class="space-y-4">
@@ -55,11 +55,11 @@
                         <input id="r-years" type="number" placeholder="Years">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-[9px] font-bold text-red-500 ml-2">APPLIED FINE</label><input id="r-fine" type="number" value="0" oninput="calcAdminTotal()"></div>
-                        <div><label class="text-[9px] font-bold text-emerald-500 ml-2">APPLIED REBATE</label><input id="r-rebate" type="number" value="0" oninput="calcAdminTotal()"></div>
+                        <div><label class="text-[9px] font-bold text-red-500 ml-2 uppercase">Fine (+)</label><input id="r-fine" type="number" value="0" oninput="calcAdminTotal()"></div>
+                        <div><label class="text-[9px] font-bold text-emerald-500 ml-2 uppercase">Rebate (-)</label><input id="r-rebate" type="number" value="0" oninput="calcAdminTotal()"></div>
                     </div>
                     <div class="bg-slate-900 text-white p-6 rounded-2xl text-center">
-                        <p class="text-[9px] font-bold opacity-40 uppercase">Total Net Calculation</p>
+                        <p class="text-[9px] font-bold opacity-40 uppercase">Net Monthly Payable</p>
                         <h2 id="r-total" class="text-3xl font-black italic">₹0</h2>
                     </div>
                     <input type="hidden" id="edit-doc-id">
@@ -86,20 +86,20 @@
                 <h3 id="wv-name" class="text-2xl font-black text-center italic">---</h3>
                 <div class="bg-white p-6 rounded-3xl border border-emerald-100 space-y-2">
                     <div class="flex justify-between text-xs font-bold text-slate-400"><span>RD Denom</span><span id="wv-denom">₹0</span></div>
-                    <div class="flex justify-between text-xs font-bold text-red-400"><span>Applied Fine (+)</span><span id="wv-fine">₹0</span></div>
-                    <div class="flex justify-between text-xs font-bold text-emerald-500"><span>Applied Rebate (-)</span><span id="wv-rebate">₹0</span></div>
+                    <div class="flex justify-between text-xs font-bold text-red-400"><span>Fine (+)</span><span id="wv-fine">₹0</span></div>
+                    <div class="flex justify-between text-xs font-bold text-emerald-500"><span>Rebate (-)</span><span id="wv-rebate">₹0</span></div>
                     <hr class="my-2 border-dashed">
-                    <div class="flex justify-between items-center"><span class="font-black">TOTAL PAYABLE</span><span id="wv-total" class="text-2xl font-black text-blue-700">₹0</span></div>
+                    <div class="flex justify-between items-center"><span class="font-black">TOTAL DUE</span><span id="wv-total" class="text-2xl font-black text-blue-700">₹0</span></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div id="m-cash" class="pay-option active" onclick="setMode('Cash')">CASH</div>
                     <div id="m-qr" class="pay-option" onclick="setMode('QR Code')">QR CODE</div>
                 </div>
-                <button onclick="workerSendOTP()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold">Confirm & Request Verification</button>
+                <button onclick="workerSendOTP()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold">Confirm & Send OTP</button>
             </div>
 
             <div id="w-otp-step" class="hidden space-y-4">
-                <input id="w-otp-input" placeholder="4-Digit OTP" class="text-center text-4xl tracking-widest">
+                <input id="w-otp-input" placeholder="Enter 4-Digit OTP" class="text-center text-4xl tracking-widest font-black">
                 <button onclick="workerVerifyDeposit()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-bold">Verify & Deposit</button>
             </div>
         </div>
@@ -111,43 +111,47 @@
             <div id="cl-s1" class="space-y-4">
                 <input id="cl-phone" placeholder="Mobile Number">
                 <button onclick="clientSendOTP()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold">Request Access OTP</button>
+                <button onclick="nav('view-hub')" class="text-xs font-bold text-slate-400">Back to Home</button>
             </div>
             <div id="cl-s2" class="hidden space-y-4">
                 <input id="cl-otp" placeholder="••••" class="text-center text-5xl tracking-widest font-black text-blue-600">
-                <button onclick="clientVerifyLogin()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold">Verify & Enter</button>
+                <button onclick="clientVerifyLogin()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold">Verify & Open Passbook</button>
             </div>
         </div>
     </div>
 
     <div id="view-passbook" class="hidden min-h-screen flex flex-col items-center p-8 bg-white">
-        <p class="text-[10px] font-black text-slate-300 tracking-[0.4em] uppercase mb-8">Secure Digital Ledger</p>
+        <div class="w-full max-w-[450px] flex justify-between items-center mb-8">
+            <p class="text-[10px] font-black text-slate-300 tracking-[0.4em] uppercase">Digital Ledger</p>
+            <button onclick="nav('view-hub')" class="text-[10px] font-bold text-red-400 uppercase">Logout</button>
+        </div>
         <div class="passbook-card mb-8">
             <p id="p-name" class="text-lg font-bold opacity-70 mb-1 uppercase">---</p>
             <h1 id="p-balance" class="text-4xl font-black italic">₹0</h1>
             <div class="mt-10 pt-5 border-t border-white/10 flex justify-between text-[9px] font-black opacity-40">
-                <span>AUTHENTICATED</span>
+                <span>DIGITALLY VERIFIED</span>
                 <span id="p-acc">ACC: ****</span>
             </div>
         </div>
         <div class="w-full max-w-[450px] grid grid-cols-2 gap-4 mb-6">
-            <div class="glass-card p-6 text-center"><label class="text-[9px] font-bold text-slate-400 block mb-1">DENOM</label><p id="p-denom" class="text-xl font-black">₹0</p></div>
-            <div class="glass-card p-6 text-center"><label class="text-[9px] font-bold text-slate-400 block mb-1">PAID MONTHS</label><p id="p-paid" class="text-xl font-black">0/12</p></div>
-            <div class="glass-card p-6 text-center"><label class="text-[9px] font-bold text-emerald-500 block mb-1 uppercase">Applied Rebate</label><p id="p-rebate" class="text-xl font-black">₹0</p></div>
-            <div class="glass-card p-6 text-center"><label class="text-[9px] font-bold text-red-500 block mb-1 uppercase">Applied Fine</label><p id="p-fine" class="text-xl font-black">₹0</p></div>
+            <div class="glass-card p-6 text-center"><label class="text-[9px] font-bold text-slate-400 block mb-1 uppercase">Monthly Denom</label><p id="p-denom" class="text-xl font-black">₹0</p></div>
+            <div class="glass-card p-6 text-center"><label class="text-[9px] font-bold text-slate-400 block mb-1 uppercase">Paid Status</label><p id="p-paid" class="text-xl font-black">0/12</p></div>
+            <div class="glass-card p-6 text-center"><label class="text-[9px] font-bold text-emerald-500 block mb-1 uppercase">Total Rebate</label><p id="p-rebate" class="text-xl font-black">₹0</p></div>
+            <div class="glass-card p-6 text-center"><label class="text-[9px] font-bold text-red-500 block mb-1 uppercase">Total Fine</label><p id="p-fine" class="text-xl font-black">₹0</p></div>
         </div>
-        <button onclick="preparePDF()" class="w-full max-w-[450px] bg-slate-900 text-white py-5 rounded-3xl font-black shadow-xl">Download Official Receipt (PDF)</button>
+        <button onclick="preparePDF()" class="w-full max-w-[450px] bg-slate-900 text-white py-5 rounded-3xl font-black shadow-xl">Download Receipt (PDF)</button>
     </div>
 
     <div id="receipt-modal" class="fixed inset-0 hidden bg-black/90 z-50 flex items-center justify-center p-4">
         <div id="receipt-capture" class="bg-white p-10 rounded-2xl text-center w-[380px]">
             <h2 class="text-2xl font-black text-blue-900 uppercase italic">SecureBank India</h2>
-            <p class="text-[9px] font-bold text-slate-400 mb-6 tracking-widest">TRANSACTION ACKNOWLEDGMENT</p>
-            <div class="border-y border-dashed py-6 my-6 text-left space-y-3 text-sm font-bold">
-                <div class="flex justify-between"><span>Member:</span><span id="rec-name">---</span></div>
-                <div class="flex justify-between"><span>Amount Paid:</span><span id="rec-amt">₹0</span></div>
-                <div class="flex justify-between"><span>Total Balance:</span><span id="rec-bal">₹0</span></div>
+            <hr class="my-4">
+            <div class="text-left space-y-3 text-sm font-bold">
+                <div class="flex justify-between text-slate-400 text-[10px]"><span>NAME</span><span id="rec-name" class="text-slate-900 text-sm">---</span></div>
+                <div class="flex justify-between text-slate-400 text-[10px]"><span>TOTAL DEPOSITED</span><span id="rec-bal" class="text-slate-900 text-sm">₹0</span></div>
+                <div class="flex justify-between text-slate-400 text-[10px]"><span>DATE</span><span id="rec-date" class="text-slate-900 text-sm">---</span></div>
             </div>
-            <p class="text-[9px] text-slate-300">Digitally verified on <span id="rec-date"></span></p>
+            <p class="text-[9px] mt-8 text-slate-400 italic">This is a system generated e-receipt.</p>
         </div>
         <div class="fixed bottom-10 flex gap-4">
             <button onclick="downloadPDF()" class="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold">Save PDF</button>
@@ -156,6 +160,7 @@
     </div>
 
     <script>
+        // CONFIG - Replace with yours
         const firebaseConfig = { apiKey: "AIzaSyCLZr_vHKRZw9mr27IFzkKvB6SD4Keksas", projectId: "bank-d463e", appId: "1:293213633601:web:848fa363878f3230345ac0" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -169,7 +174,7 @@
             else if (unsub) { unsub(); unsub = null; }
         }
 
-        // BANKER
+        // --- BANKER LOGIC ---
         function calcAdminTotal() {
             const d = parseFloat(document.getElementById('r-denom').value) || 0;
             const f = parseFloat(document.getElementById('r-fine').value) || 0;
@@ -188,12 +193,15 @@
                 rebate: parseFloat(document.getElementById('r-rebate').value) || 0,
                 years: parseInt(document.getElementById('r-years').value) || 1
             };
-            if(id) await db.collection('accounts').doc(id).update(data);
-            else {
+            if(id) {
+                await db.collection('accounts').doc(id).update(data);
+                alert("Account Updated!");
+            } else {
                 data.balance = 0; data.paid_count = 0; data.created_at = new Date();
                 await db.collection('accounts').add(data);
+                alert("Account Registered!");
             }
-            alert("Success!"); resetAdminForm();
+            resetAdminForm();
         }
 
         function startListener() {
@@ -205,8 +213,8 @@
                         <div><h4 class="font-black italic">${d.name}</h4><p class="text-[10px]">ACC: ${d.acc} | ${d.phone}</p></div>
                         <div class="flex gap-4 items-center">
                             <p class="text-xl font-black text-blue-600">₹${(d.balance || 0).toLocaleString()}</p>
-                            <button onclick='editAcc("${doc.id}", ${JSON.stringify(d)})' class="text-blue-500 font-bold text-xs">EDIT</button>
-                            <button onclick='deleteAcc("${doc.id}")' class="text-red-400 font-bold text-xs">DEL</button>
+                            <button onclick='editAcc("${doc.id}", ${JSON.stringify(d)})' class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-[10px] font-black">EDIT</button>
+                            <button onclick='deleteAcc("${doc.id}")' class="bg-red-50 text-red-600 px-3 py-1 rounded-lg text-[10px] font-black">DEL</button>
                         </div>
                     </div>`;
                 });
@@ -215,7 +223,8 @@
 
         function editAcc(id, data) {
             document.getElementById('edit-doc-id').value = id;
-            document.getElementById('admin-title').innerText = "Update Member";
+            document.getElementById('admin-title').innerText = "Update User Profile";
+            document.getElementById('admin-btn').innerText = "Save Changes";
             document.getElementById('cancel-edit').classList.remove('hidden');
             document.getElementById('r-acc').value = data.acc;
             document.getElementById('r-name').value = data.name;
@@ -230,14 +239,15 @@
         function resetAdminForm() {
             document.getElementById('edit-doc-id').value = "";
             document.getElementById('admin-title').innerText = "Create Account";
+            document.getElementById('admin-btn').innerText = "Register User";
             document.getElementById('cancel-edit').classList.add('hidden');
             ['r-acc','r-name','r-phone','r-denom','r-years','r-fine','r-rebate'].forEach(i => document.getElementById(i).value = "");
             calcAdminTotal();
         }
 
-        async function deleteAcc(id) { if(confirm("Delete this user?")) await db.collection('accounts').doc(id).delete(); }
+        async function deleteAcc(id) { if(confirm("Permanently delete member?")) await db.collection('accounts').doc(id).delete(); }
 
-        // WORKER
+        // --- WORKER LOGIC ---
         async function workerSearch() {
             const snap = await db.collection('accounts').where('phone','==',document.getElementById('w-search-phone').value).get();
             if(!snap.empty) {
@@ -250,7 +260,7 @@
                 document.getElementById('wv-total').innerText = "₹" + window.pAmt.toLocaleString();
                 document.getElementById('w-search-step').classList.add('hidden');
                 document.getElementById('w-pay-step').classList.remove('hidden');
-            } else alert("Mobile Not Found");
+            } else alert("Mobile Number not found!");
         }
 
         function setMode(m) {
@@ -261,7 +271,7 @@
 
         function workerSendOTP() {
             tempOTP = Math.floor(1000 + Math.random() * 9000).toString();
-            alert(`[VERIFICATION] Code for ${activeUser.name}: ${tempOTP}`);
+            alert(`[VERIFY ${activeMode.toUpperCase()}] Code for ${activeUser.name}: ${tempOTP}`);
             document.getElementById('w-pay-step').classList.add('hidden');
             document.getElementById('w-otp-step').classList.remove('hidden');
         }
@@ -272,21 +282,21 @@
                     balance: firebase.firestore.FieldValue.increment(window.pAmt),
                     paid_count: firebase.firestore.FieldValue.increment(1)
                 });
-                alert("Deposit Logged Successfully");
+                alert("Transaction Successful!");
                 location.reload();
-            } else alert("Incorrect Verification Code");
+            } else alert("Invalid Code!");
         }
 
-        // CLIENT
+        // --- CLIENT LOGIC ---
         async function clientSendOTP() {
             const snap = await db.collection('accounts').where('phone','==',document.getElementById('cl-phone').value).get();
             if(!snap.empty) {
                 activeUser = snap.docs[0].data();
                 tempOTP = Math.floor(1000 + Math.random() * 9000).toString();
-                alert("Security Code: " + tempOTP);
+                alert("Your Login OTP: " + tempOTP);
                 document.getElementById('cl-s1').classList.add('hidden');
                 document.getElementById('cl-s2').classList.remove('hidden');
-            } else alert("Mobile not registered");
+            } else alert("Number not registered.");
         }
 
         function clientVerifyLogin() {
@@ -299,12 +309,11 @@
                 document.getElementById('p-fine').innerText = "₹" + (activeUser.fine || 0).toLocaleString();
                 document.getElementById('p-acc').innerText = "ACC: " + activeUser.acc;
                 nav('view-passbook');
-            } else alert("Verification Failed");
+            } else alert("Invalid OTP.");
         }
 
         function preparePDF() {
             document.getElementById('rec-name').innerText = activeUser.name;
-            document.getElementById('rec-amt').innerText = "₹" + activeUser.denom.toLocaleString();
             document.getElementById('rec-bal').innerText = "₹" + (activeUser.balance || 0).toLocaleString();
             document.getElementById('rec-date').innerText = new Date().toLocaleDateString();
             document.getElementById('receipt-modal').classList.remove('hidden');
@@ -313,7 +322,7 @@
         async function downloadPDF() {
             const canvas = await html2canvas(document.getElementById('receipt-capture'));
             const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 100, 120);
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 80, 60);
             pdf.save(`${activeUser.name}_Receipt.pdf`);
         }
     </script>
